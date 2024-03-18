@@ -26,6 +26,13 @@ The PoE Calculator is a web-based tool designed to help users calculate Power ov
 4. View the PoE power allocation table to understand the power limits and standards for each class.
 5. Toggle the power management modes table to learn about static and dynamic power management modes.
 
+## Libraries and Languages Used
+
+- **HTML/CSS** - For the structure and styling of the web page.
+- **JavaScript** - For implementing the calculator logic and interactive features.
+- **Bootstrap** - CSS framework for responsive design and UI components.
+- **Shepherd** - JavaScript library for creating interactive guided tours.
+
 ## Contributing
 
 Contributions are welcome! If you have any suggestions, bug reports, or feature requests, please open an issue or submit a pull request.
