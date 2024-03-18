@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoE Calculator</title>
+    <!-- Bootstrap stylesheet -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <!-- Shepherd guide files (Stylesheet + JavaScript) -->
+    <script src="https://cdn.jsdelivr.net/npm/shepherd.js@10.0.1/dist/js/shepherd.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@10.0.1/dist/css/shepherd.css" />
+
+<!-- Favicon -->
+<link rel="apple-touch-icon" sizes="180x180" href="Favicon/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="Favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="Favicon/favicon-16x16.png">
+<link rel="manifest" href="Favicon/site.webmanifest">
+
+    <!-- Local site styling -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bowlby+One&family=Chilanka&display=swap');
+
+        body {
+            font-family: "Chilanka", cursive;
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: "Bowlby One", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        .text-mute {
+            color: rgb(237, 237, 237);
+            padding-top: 50px;
+        }
+
+        .text-mute a {
+            color: rgb(237, 237, 237);
+        }
+
+        .shepherd-element {
+            background: #d6d6d6;
+        }
+
+        .shepherd-arrow:before {
+            background: #d6d6d6;
+        }
+    </style>
+    <!-- Site styling -->
+</head>
+
+<body>
+
+    <!-- Start calculator explanation -->
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col">
+                <h1>PoE Calculator</h1>
+                <div class="accordion accordion-flush" id="accordionFlushExample">
+                    <!-- How to Use the PoE Calculator Section -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#howToUseCollapse" aria-expanded="false"
+                                aria-controls="howToUseCollapse">
+                                How to Use the PoE Calculator
+                            </button>
+                        </h2>
+                        <div id="howToUseCollapse" class="accordion-collapse collapse"
+                            data-bs-parent="#accordionFlushExample">
+                            <div class="accordion-body">
+                                <ol>
+                                    <li>Input the total PoE budget of the switch into the designated field.</li>
+                                    <li>Enter the number of devices for each PoE class in the respective input fields.
+                                    </li>
+                                    <li>The calculator dynamically computes the leftover budget after considering the
+                                        power
+                                        consumption of the devices.</li>
+                                    <li>You can view the PoE power allocation table to understand the power limits and
+                                        standards
+                                        for each class.</li>
+                                    <li>Toggle the power management modes table to learn about static and dynamic power
+                                        management modes.</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Who Made It Section -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#whoMadeItCollapse" aria-expanded="false"
+                                aria-controls="whoMadeItCollapse">
+                                Who Made It
+                            </button>
+                        </h2>
+                        <div id="whoMadeItCollapse" class="accordion-collapse collapse"
+                            data-bs-parent="#accordionFlushExample">
+                            <div class="accordion-body">
+                                <p>Hi 👋👋, I'm Michael Dijk 🤓, an AV systems Engineer for <a
+                                        href="mailto:mdijk@netgear.com">NETGEAR</a>. Outside of work, I'm a full-stack
+                                    developer
+                                    working on various small projects.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PoE Power Allocation Table Section -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#poeAllocationCollapse" aria-expanded="false"
+                                aria-controls="poeAllocationCollapse">
+                                PoE Power Allocation Table
+                            </button>
+                        </h2>
+                        <div id="poeAllocationCollapse" class="accordion-collapse collapse"
+                            data-bs-parent="#accordionFlushExample">
+                            <div class="accordion-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Device Class</th>
+                                            <th>Compatible PoE Standard</th>
+                                            <th>Class Description</th>
+                                            <th>Maximum Power Reserved for the PD</th>
+                                            <th>Power Delivered to the PD</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>0</td>
+                                            <td>PoE, PoE+, and PoE++</td>
+                                            <td>Default power (full)</td>
+                                            <td>15.4 watt</td>
+                                            <td>0.44W–15.8W</td>
+                                        </tr>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>PoE, PoE+, and PoE++</td>
+                                            <td>Very low power</td>
+                                            <td>4.0 watt</td>
+                                            <td>0.44W–3.84W</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>PoE, PoE+, and PoE++</td>
+                                            <td>Low power</td>
+                                            <td>7.0 watt</td>
+                                            <td>3.84W–7.2W</td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td>PoE, PoE+, and PoE++</td>
+                                            <td>Mid power</td>
+                                            <td>15.4 watt</td>
+                                            <td>6.49W–15.9W</td>
+                                        </tr>
+                                        <tr>
+                                            <td>4</td>
+                                            <td>PoE, PoE+, and PoE++</td>
+                                            <td>High Power</td>
+                                            <td>30.0 watt</td>
+                                            <td>12.95W–30.8W</td>
+                                        </tr>
+                                        <tr>
+                                            <td>5</td>
+                                            <td>PoE++</td>
+                                            <td>Ultra high power</td>
+                                            <td>45.0 watt</td>
+                                            <td>25.5W–47.0W</td>
+                                        </tr>
+                                        <tr>
+                                            <td>6</td>
+                                            <td>PoE++</td>
+                                            <td>Ultra high power</td>
+                                            <td>60.0 watt</td>
+                                            <td>51.0W–64.4W</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Power Management Modes Section -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#powerManagementCollapse" aria-expanded="false"
+                                aria-controls="powerManagementCollapse">
+                                Power Management Modes
+                            </button>
+                        </h2>
+                        <div id="powerManagementCollapse" class="accordion-collapse collapse"
+                            data-bs-parent="#accordionFlushExample">
+                            <div class="accordion-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mode</th>
+                                            <th>Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Static Mode</td>
+                                            <td>The power deducted from the total available PoE is the maximum power for
+                                                that
+                                                interface, based on the PoE class specified by the device, or, when
+                                                specified in
+                                                the Power Limit configuration, under PoE Port Configuration. Using this
+                                                mode
+                                                ensures that the maximum power specified by you, or, class, for the
+                                                interface is
+                                                always reserved and cannot be shared by other PDs.</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Dynamic Mode</td>
+                                            <td>The power deducted from the total available PoE for each port is the
+                                                actual
+                                                power consumed by that given port. You can allocate any unused portion
+                                                of power
+                                                to the other PDs. By default, this is the mode that the switch is
+                                                configured in.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- End calculator explanation -->
+
+
+
+    <!-- Start calculator itself -->
+    <section class="container mt-5">
+        <div class="row">
+            <div class="col">
+                <h2>The calculator</h2>
+                <!-- PoE Class Inputs -->
+                <!-- Total PoE Budget Input -->
+                <div class="form-group row">
+                    <label for="totalBudget" class="col-sm-6 col-form-label">Total PoE Budget of Switch (W)</label>
+                    <div class="col-sm-6">
+                        <input type="number" placeholder="Please enter switch budget here" class="form-control"
+                            id="totalBudget" oninput="calculateLeftoverBudget()">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="class0" class="col-sm-6 col-form-label">Class 0 Devices (15.4W)</label>
+                    <div class="col-sm-6">
+                        <input type="number" class="form-control class-input" id="class0" value="0"
+                            oninput="calculateLeftoverBudget()">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="class1" class="col-sm-6 col-form-label">Class 1 Devices (4W)</label>
+                    <div class="col-sm-6">
+                        <input type="number" class="form-control class-input" id="class1" value="0"
+                            oninput="calculateLeftoverBudget()">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="class2" class="col-sm-6 col-form-label">Class 2 Devices (7W)</label>
+                    <div class="col-sm-6">
+                        <input type="number" class="form-control class-input" id="class2" value="0"
+                            oninput="calculateLeftoverBudget()">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="class3" class="col-sm-6 col-form-label">Class 3 Devices (15.4W)</label>
+                    <div class="col-sm-6">
+                        <input type="number" class="form-control class-input" id="class3" value="0"
+                            oninput="calculateLeftoverBudget()">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="class4" class="col-sm-6 col-form-label">Class 4 Devices (30W)</label>
+                    <div class="col-sm-6">
+                        <input type="number" class="form-control class-input" id="class4" value="0"
+                            oninput="calculateLeftoverBudget()">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="class5" class="col-sm-6 col-form-label">Class 5 Devices (45W)</label>
+                    <div class="col-sm-6">
+                        <input type="number" class="form-control class-input" id="class5" value="0"
+                            oninput="calculateLeftoverBudget()">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="class6" class="col-sm-6 col-form-label">Class 6 Devices (60W)</label>
+                    <div class="col-sm-6">
+                        <input type="number" class="form-control class-input" id="class6" value="0"
+                            oninput="calculateLeftoverBudget()">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="class7" class="col-sm-6 col-form-label">Class 7 Devices (75W)</label>
+                    <div class="col-sm-6">
+                        <input type="number" class="form-control class-input" id="class7" value="0"
+                            oninput="calculateLeftoverBudget()">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="class8" class="col-sm-6 col-form-label">Class 8 Devices (90W)</label>
+                    <div class="col-sm-6">
+                        <input type="number" class="form-control class-input" id="class8" value="0"
+                            oninput="calculateLeftoverBudget()">
+                    </div>
+                </div>
+
+                <!-- Leftover Budget Display -->
+                <div class="form-group row">
+                    <label for="leftoverBudget" class="col-sm-6 col-form-label">Leftover Budget (W)</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control" id="leftoverBudget" readonly>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!-- End calculator itself -->
+
+    <!-- Start footer -->
+    <footer class="footer mt-auto py-3 mt-5">
+        <div class="container text-center text-mute">
+            <p>Created by Michael Dijk, AV Systems Engineer at <a href="mailto:mdijk@netgear.com">NETGEAR</a></p>
+            <p>&copy; <span id="currentYear"></span> All rights reserved.</p>
+        </div>
+    </footer>
+    <!-- End footer -->
+
+
+
+    <!-- Bootstrap scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+
+    <!-- Shepherd guide script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tour = new Shepherd.Tour({
+                defaultStepOptions: {
+                    classes: 'shepherd-theme-arrows',
+                },
+            });
+
+            tour.addStep({
+                id: 'step1',
+                text: 'Welcome to the PoE Calculator tutorial! This tutorial will guide you through the usage of this tool.',
+                attachTo: {
+                    element: '.container h1',
+                    on: 'bottom',
+                },
+                buttons: [
+                    {
+                        text: 'Skip',
+                        action: tour.cancel,
+                    },
+                    {
+                        text: 'Next',
+                        action: tour.next,
+                    },
+                ],
+            });
+
+            tour.addStep({
+                id: 'step2',
+                text: 'To get started, input the total PoE budget of the switch into the designated field.',
+                attachTo: {
+                    element: '#totalBudget',
+                    on: 'bottom',
+                },
+                buttons: [
+                    {
+                        text: 'Next',
+                        action: tour.next,
+                    },
+                ],
+            });
+
+            tour.addStep({
+                id: 'step3',
+                text: 'Now, enter the number of devices for each PoE class in the respective input fields.',
+                attachTo: {
+                    element: '#class0',
+                    on: 'bottom',
+                },
+                buttons: [
+                    {
+                        text: 'Next',
+                        action: tour.next,
+                    },
+                ],
+            });
+
+            tour.addStep({
+                id: 'step4',
+                text: 'The calculator will dynamically compute the leftover budget after considering the power consumption of the devices.',
+                attachTo: {
+                    element: '#leftoverBudget',
+                    on: 'bottom',
+                },
+                buttons: [
+                    {
+                        text: 'Next',
+                        action: tour.next,
+                    },
+                ],
+            });
+
+            tour.addStep({
+                id: 'step5',
+                text: 'You can view the PoE power allocation table to understand the power limits and standards for each class.',
+                attachTo: {
+                    element: '#poeAllocationCollapse .accordion-button',
+                    on: 'bottom',
+                },
+                buttons: [
+                    {
+                        text: 'Next',
+                        action: tour.next,
+                    },
+                ],
+            });
+
+            tour.addStep({
+                id: 'step6',
+                text: 'Toggle the power management modes table to learn about static and dynamic power management modes.',
+                attachTo: {
+                    element: '#powerManagementCollapse .accordion-button',
+                    on: 'bottom',
+                },
+                buttons: [
+                    {
+                        text: 'Finish',
+                        action: tour.complete,
+                    },
+                ],
+            });
+
+            tour.start();
+        });
+    </script>
+
+
+    <!-- Own scripts -->
+    <script>
+        async function calculateLeftoverBudget() {
+            // Get values of each PoE class input
+            const classInputs = document.querySelectorAll('.class-input');
+            let totalPower = 0;
+            for (let i = 0; i < classInputs.length; i++) {
+                totalPower += parseInt(classInputs[i].value) * await getPower(classInputs[i].id);
+            }
+
+            // Subtract total power from total budget to get leftover budget
+            const totalBudget = parseInt(document.getElementById('totalBudget').value);
+            const leftoverBudget = totalBudget - totalPower;
+
+            // Update the leftover budget field
+            document.getElementById('leftoverBudget').value = leftoverBudget;
+        }
+
+        // Function to get power based on PoE class
+        async function getPower(className) {
+            switch (className) {
+                case 'class0':
+                    return 15.4;
+                case 'class1':
+                    return 4;
+                case 'class2':
+                    return 7;
+                case 'class3':
+                    return 15.4;
+                case 'class4':
+                    return 30;
+                case 'class5':
+                    return 45;
+                case 'class6':
+                    return 60;
+                case 'class7':
+                    return 75;
+                case 'class8':
+                    return 90;
+                default:
+                    return 0;
+            }
+        }
+
+        // Update current year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+    </script>
+</body>
+
+</html>
