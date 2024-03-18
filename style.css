@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Bowlby+One&family=Chilanka&display=swap');
+
+/* Default font setting */
+body {
+    font-family: "Chilanka", cursive;
+    font-weight: 400;
+    font-style: normal;
+}
+
+/* Heading font setting */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: "Bowlby One", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+/* Footer font setting */
+.text-mute {
+    color: rgb(237, 237, 237);
+    padding-top: 50px;
+}
+
+.text-mute a {
+    color: rgb(237, 237, 237);
+}
+
+/* Shepherd guide setting */
+.shepherd-element {
+    background: #d6d6d6;
+}
+
+.shepherd-arrow:before {
+    background: #d6d6d6;
+}
