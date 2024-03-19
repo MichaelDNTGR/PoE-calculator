@@ -388,7 +388,7 @@
 
         </section>
         <!-- End calculator itself -->
-        
+
     </div>
     <!-- Container for full body - we require this container, for the Shepherd guide to work, and highlight the data -->
 
@@ -407,207 +407,15 @@
         crossorigin="anonymous"></script>
 
     <!-- Shepherd guide script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const tour = new Shepherd.Tour({
-                useModalOverlay: true,
-                defaultStepOptions: {
-                    classes: 'shepherd-theme-arrows',
-                    scrollTo: true,
-                    cancelIcon: {
-                        enabled: true
-                    }
-                },
-            });
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/3.0.1/js.cookie.min.js"></script>
+    <script src="shepherd.js"></script>
 
-            tour.addStep({
-                id: 'step1',
-                text: 'Welcome to the PoE Calculator tutorial! This tutorial will guide you through the usage of this tool. You can skip the tutorial anytime, by pressing the "x".',
-                attachTo: {
-                    element: '.containerall',
-                    on: 'bottom',
-                },
-                buttons: [
-                    {
-                        text: 'Skip',
-                        action: tour.cancel,
-                    },
-                    {
-                        text: 'Next',
-                        action: tour.next,
-                    },
-                ],
-            });
-
-            tour.addStep({
-                id: 'step2',
-                text: 'To get started, select a switch from the dropdown, or, select custom, and fill in the Wattage in the newly available field.',
-                attachTo: {
-                    element: '#switchSelection',
-                    on: 'bottom',
-                },
-                buttons: [
-                    {
-                        text: 'Next',
-                        action: tour.next,
-                    },
-                ],
-            });
-
-            tour.addStep({
-                id: 'step3',
-                text: 'Now, enter the number of devices for each PoE class in the respective input fields.',
-                attachTo: {
-                    element: '.classInputs',
-                    on: 'bottom',
-                },
-                buttons: [
-                    {
-                        text: 'Next',
-                        action: tour.next,
-                    },
-                ],
-            });
-
-            tour.addStep({
-                id: 'step4',
-                text: 'The calculator will dynamically compute the leftover budget after considering the power consumption of the devices.',
-                attachTo: {
-                    element: '#leftoverBudget',
-                    on: 'bottom',
-                },
-                buttons: [
-                    {
-                        text: 'Next',
-                        action: tour.next,
-                    },
-                ],
-            });
-
-            tour.addStep({
-                id: 'step5',
-                text: 'You can view the PoE power allocation table to understand the power limits and standards for each class.',
-                attachTo: {
-                    element: '#allocationTable',
-                    on: 'bottom',
-                },
-                buttons: [
-                    {
-                        text: 'Next',
-                        action: tour.next,
-                    },
-                ],
-            });
-
-            tour.addStep({
-                id: 'step6',
-                text: 'Toggle the power management modes table to learn about static and dynamic power management modes.',
-                attachTo: {
-                    element: '#powerManagementMode',
-                    on: 'bottom',
-                },
-                buttons: [
-                    {
-                        text: 'Next',
-                        action: tour.next,
-                    },
-                ],
-            });
-
-            tour.addStep({
-                id: 'step7',
-                text: 'If something is missing, log a feature request 😁😁.',
-                attachTo: {
-                    element: '#featureRequest',
-                    on: 'bottom',
-                },
-                buttons: [
-                    {
-                        text: 'Finish',
-                        action: tour.complete,
-                    },
-                ],
-            });
-
-            tour.start();
-        });
-
-    </script>
-
-    <!-- Own scripts -->
-    <script>
-        // Function to handle switch selection change
-        function switchChanged() {
-            const switchSelection = document.getElementById('switchSelection');
-            const customBudgetField = document.getElementById('customBudgetField');
-
-            if (switchSelection.value === 'custom') {
-                customBudgetField.style.display = 'block';
-            } else {
-                customBudgetField.style.display = 'none';
-            }
-
-            calculateLeftoverBudget();
-        }
-
-        // Function to retrieve the selected switch's budget
-        function getSelectedSwitchBudget() {
-            const switchSelection = document.getElementById('switchSelection');
-            if (switchSelection.value !== 'custom') {
-                return parseInt(switchSelection.value.split(" (")[1].split("W")[0]);
-            } else {
-                return parseInt(document.getElementById('customBudget').value) || 0;
-            }
-        }
-
-        // Function to get power based on PoE class
-        async function getPower(className) {
-            switch (className) {
-                case 'class0':
-                    return 15.4;
-                case 'class1':
-                    return 4;
-                case 'class2':
-                    return 7;
-                case 'class3':
-                    return 15.4;
-                case 'class4':
-                    return 30;
-                case 'class5':
-                    return 45;
-                case 'class6':
-                    return 60;
-                case 'class7':
-                    return 75;
-                case 'class8':
-                    return 90;
-                default:
-                    return 0;
-            }
-        }
-
-        // Update the calculateLeftoverBudget function to consider the selected switch's budget
-        async function calculateLeftoverBudget() {
-            // Get values of each PoE class input
-            const classInputs = document.querySelectorAll('.class-input');
-            let totalPower = 0;
-            for (let i = 0; i < classInputs.length; i++) {
-                totalPower += parseInt(classInputs[i].value) * await getPower(classInputs[i].id);
-            }
-
-            // Subtract total power from total budget (considering the selected switch's budget) to get leftover budget
-            const totalBudget = getSelectedSwitchBudget();
-            const leftoverBudget = totalBudget - totalPower;
-
-            // Update the leftover budget field
-            document.getElementById('leftoverBudget').value = leftoverBudget;
-        }
-
-        // Update current year
-        document.getElementById('currentYear').textContent = new Date().getFullYear();
-
-
-    </script>
+    <!-- Start own scripts -->
+    <!-- Calculator script -->
+    <script src="calc.js"></script>
+    <!-- Other script/data -->
+    <script src="other.js"></script>
+    <!-- End own scripts -->
 </body>
 
 </html>
