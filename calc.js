@@ -1,3 +1,46 @@
+// Function to update switch selection dropdown based on the selected switch family and redundancy options
+function updateDropdownOptions() {
+    const m4350Family = document.getElementById('m4350Family').checked;
+    const m4250Family = document.getElementById('m4250Family').checked;
+    const psuRedundancy = document.getElementById('psuRedundancy');
+    const noPsuRedundancy = document.getElementById('noPsuRedundancy');
+    
+    // Clear current options except for the default and custom
+    const switchSelection = document.getElementById('switchSelection');
+    Array.from(switchSelection.options).forEach(option => {
+        if (option.value !== "default" && option.value !== "custom") {
+            option.remove();
+        }
+    });
+
+    // Enable PSU redundancy checkboxes based on family selection
+    psuRedundancy.disabled = !m4350Family;
+    noPsuRedundancy.disabled = !m4350Family;
+
+    // Populate the dropdown based on selected options
+    if (m4350Family) {
+        switchSelection.options[switchSelection.options.length] = new Option('M4350-10G2F-PoE+ (125W)', 'M4350-10G2F-PoE+ (125W)');
+        // ... Add other M4350 options here ...
+        
+        if (psuRedundancy.checked) {
+            switchSelection.options[switchSelection.options.length] = new Option('Redundant - M4350-10G2F-PoE+ (125W)', 'M4350-10G2F-PoE+ (125W)');
+        } else if (noPsuRedundancy.checked) {
+            // ... Add options without PSU redundancy ...
+        }
+    } else if (m4250Family) {
+        switchSelection.options[switchSelection.options.length] = new Option('M4250-10G2F-PoE+ (125W)', 'M4250-10G2F-PoE+ (125W)');
+        // ... Add other M4250 options here ...
+    }
+    
+    // Reset redundancy checkboxes if no family is selected
+    if (!m4350Family && !m4250Family) {
+        psuRedundancy.checked = false;
+        noPsuRedundancy.checked = false;
+        psuRedundancy.disabled = true;
+        noPsuRedundancy.disabled = true;
+    }
+}
+
 // Function to handle switch selection change
 function switchChanged() {
     const switchSelection = document.getElementById('switchSelection');

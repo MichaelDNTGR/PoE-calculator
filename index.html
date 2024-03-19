@@ -263,22 +263,40 @@
         <!-- Start calculator itself -->
         <section class="container mt-5">
             <div class="form-group row">
+                <div class="col-sm-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="m4350Family" onchange="updateDropdownOptions()">
+                        <label class="form-check-label" for="m4350Family">
+                            M4350 Family
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="m4250Family" onchange="updateDropdownOptions()">
+                        <label class="form-check-label" for="m4250Family">
+                            M4250 Family
+                        </label>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="psuRedundancy" onchange="updateDropdownOptions()" disabled>
+                        <label class="form-check-label" for="psuRedundancy">
+                            PSU Redundancy
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="noPsuRedundancy" onchange="updateDropdownOptions()" disabled>
+                        <label class="form-check-label" for="noPsuRedundancy">
+                            No PSU Redundancy
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group row">
                 <label for="switchSelection" class="col-sm-6 col-form-label">Select a NETGEAR switch</label>
                 <div class="col-sm-6">
                     <select class="form-select" id="switchSelection" onchange="switchChanged()">
                         <option value="default" selected disabled>Select a NETGEAR switch</option>
-                        <option value="M4250-10G2F-PoE+ (125W)">M4250-10G2F-PoE+ (125W)</option>
-                        <option value="M4250-10G2XF-PoE+ (240W)">M4250-10G2XF-PoE+ (240W)</option>
-                        <option value="M4250-10G2XF-PoE++ (720W)">M4250-10G2XF-PoE++ (720W)</option>
-                        <option value="M4250-26G4F-PoE+ (300W)">M4250-26G4F-PoE+ (300W)</option>
-                        <option value="M4250-26G4F-PoE++ (1440W)">M4250-26G4F-PoE++ (1440W) Two PSU</option>
-                        <option value="M4250-26G4F-PoE++ (720W)">M4250-26G4F-PoE+ (720W) One PSU</option>
-                        <option value="M4250-26G4XF-PoE+ (480W)">M4250-26G4XF-PoE+ (480W)</option>
-                        <option value="M4250-40G8F-PoE+ (480W)">M4250-26G4XF-PoE+ (480W)</option>
-                        <option value="M4250-40G8XF-PoE+ (960W)">M4250-40G8XF-PoE+ (960W)</option>
-                        <option value="M4250-40G8XF-PoE++ (2880W)">M4250-40G8XF-PoE++ (2880W) Three PSU</option>
-                        <option value="M4250-40G8XF-PoE++ (1650W)">M4250-40G8XF-PoE++ (1650W) Two PSU</option>
-                        <option value="M4250-40G8XF-PoE++ (720W)">M4250-40G8XF-PoE++ (720W) One PSU</option>
                         <option value="custom">Custom</option>
                     </select>
                 </div>
