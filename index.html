@@ -47,21 +47,10 @@
                                 data-bs-parent="#accordionFlushExample">
                                 <div class="accordion-body">
                                     <ol>
-                                        <li>Input the total PoE budget of the switch into the designated field.</li>
-                                        <li>Enter the number of devices for each PoE class in the respective input
-                                            fields.
-                                        </li>
-                                        <li>The calculator dynamically computes the leftover budget after considering
-                                            the
-                                            power
-                                            consumption of the devices.</li>
+                                        <li>To get started, select a switch from the dropdown, or, select custom, and fill in the Wattage in the newly available field.</li>
+                                        <li>Then, enter the number of devices for each PoE class in the respective input fields.</li>
+                                        <li>The calculator will dynamically compute the leftover budget after considering the power consumption of the devices.</li>
                                         <li>You can view the PoE power allocation table to understand the power limits
-                                            and
-                                            standards
-                                            for each class.</li>
-                                        <li>Toggle the power management modes table to learn about static and dynamic
-                                            power
-                                            management modes.</li>
                                     </ol>
                                 </div>
                             </div>
@@ -88,107 +77,107 @@
                             </div>
                         </div>
 
-<!-- PoE Power Allocation Table Section -->
-<div class="accordion-item" id="allocationTable">
-    <h2 class="accordion-header">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                data-bs-target="#poeAllocationCollapse" aria-expanded="false"
-                aria-controls="poeAllocationCollapse">
-            PoE Power Allocation Table
-        </button>
-    </h2>
-    <div id="poeAllocationCollapse" class="accordion-collapse collapse"
-         data-bs-parent="#accordionFlushExample">
-        <div class="accordion-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Class</th>
-                        <th>IEEE PoE Standard</th>
-                        <th>PSE - Max Power Delivered (W)</th>
-                        <th>PSE Voltage Range</th>
-                        <th>PD - Power Available (W)</th>
-                        <th>PD Voltage Range</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>0</td>
-                        <td>IEEE 802.3af, PoE (2 pair)</td>
-                        <td>15.4</td>
-                        <td>44 – 57 V</td>
-                        <td>12.95</td>
-                        <td>37 – 57 V</td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>IEEE 802.3af, PoE (2 pair)</td>
-                        <td>4</td>
-                        <td>44 – 57 V</td>
-                        <td>3.84</td>
-                        <td>37 – 57 V</td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>IEEE 802.3af, PoE (2 pair)</td>
-                        <td>7</td>
-                        <td>44 – 57 V</td>
-                        <td>6.49</td>
-                        <td>37 – 57 V</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>IEEE 802.3af, PoE (2 pair)</td>
-                        <td>15.4</td>
-                        <td>44 – 57 V</td>
-                        <td>12.95</td>
-                        <td>37 – 57 V</td>
-                    </tr>
-                    <tr>
-                        <td>4</td>
-                        <td>IEEE 802.3at, PoE+ (2 pair)</td>
-                        <td>30</td>
-                        <td>50 – 57 V</td>
-                        <td>25.5</td>
-                        <td>42 – 57 V</td>
-                    </tr>
-                    <tr>
-                        <td>5</td>
-                        <td>IEEE 802.3bt, Type 3 (4 pair)</td>
-                        <td>45</td>
-                        <td>50 – 57 V</td>
-                        <td>40</td>
-                        <td>42 – 57 V</td>
-                    </tr>
-                    <tr>
-                        <td>6</td>
-                        <td>IEEE 802.3bt, Type 3 (4 pair)</td>
-                        <td>60</td>
-                        <td>50 – 57 V</td>
-                        <td>51</td>
-                        <td>42 – 57 V</td>
-                    </tr>
-                    <tr>
-                        <td>7</td>
-                        <td>IEEE 802.3bt, Type 4 (4 pair)</td>
-                        <td>75</td>
-                        <td>52 – 57 V</td>
-                        <td>62</td>
-                        <td>51 – 57 V</td>
-                    </tr>
-                    <tr>
-                        <td>8</td>
-                        <td>IEEE 802.3bt, Type 4 (4 pair)</td>
-                        <td>90</td>
-                        <td>52 – 57 V</td>
-                        <td>73</td>
-                        <td>51 – 57 V</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+                        <!-- PoE Power Allocation Table Section -->
+                        <div class="accordion-item" id="allocationTable">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#poeAllocationCollapse" aria-expanded="false"
+                                    aria-controls="poeAllocationCollapse">
+                                    PoE Power Allocation Table
+                                </button>
+                            </h2>
+                            <div id="poeAllocationCollapse" class="accordion-collapse collapse"
+                                data-bs-parent="#accordionFlushExample">
+                                <div class="accordion-body">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Class</th>
+                                                <th>IEEE PoE Standard</th>
+                                                <th>PSE - Max Power Delivered (W)</th>
+                                                <th>PSE Voltage Range</th>
+                                                <th>PD - Power Available (W)</th>
+                                                <th>PD Voltage Range</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>0</td>
+                                                <td>IEEE 802.3af, PoE (2 pair)</td>
+                                                <td>15.4</td>
+                                                <td>44 – 57 V</td>
+                                                <td>12.95</td>
+                                                <td>37 – 57 V</td>
+                                            </tr>
+                                            <tr>
+                                                <td>1</td>
+                                                <td>IEEE 802.3af, PoE (2 pair)</td>
+                                                <td>4</td>
+                                                <td>44 – 57 V</td>
+                                                <td>3.84</td>
+                                                <td>37 – 57 V</td>
+                                            </tr>
+                                            <tr>
+                                                <td>2</td>
+                                                <td>IEEE 802.3af, PoE (2 pair)</td>
+                                                <td>7</td>
+                                                <td>44 – 57 V</td>
+                                                <td>6.49</td>
+                                                <td>37 – 57 V</td>
+                                            </tr>
+                                            <tr>
+                                                <td>3</td>
+                                                <td>IEEE 802.3af, PoE (2 pair)</td>
+                                                <td>15.4</td>
+                                                <td>44 – 57 V</td>
+                                                <td>12.95</td>
+                                                <td>37 – 57 V</td>
+                                            </tr>
+                                            <tr>
+                                                <td>4</td>
+                                                <td>IEEE 802.3at, PoE+ (2 pair)</td>
+                                                <td>30</td>
+                                                <td>50 – 57 V</td>
+                                                <td>25.5</td>
+                                                <td>42 – 57 V</td>
+                                            </tr>
+                                            <tr>
+                                                <td>5</td>
+                                                <td>IEEE 802.3bt, Type 3 (4 pair)</td>
+                                                <td>45</td>
+                                                <td>50 – 57 V</td>
+                                                <td>40</td>
+                                                <td>42 – 57 V</td>
+                                            </tr>
+                                            <tr>
+                                                <td>6</td>
+                                                <td>IEEE 802.3bt, Type 3 (4 pair)</td>
+                                                <td>60</td>
+                                                <td>50 – 57 V</td>
+                                                <td>51</td>
+                                                <td>42 – 57 V</td>
+                                            </tr>
+                                            <tr>
+                                                <td>7</td>
+                                                <td>IEEE 802.3bt, Type 4 (4 pair)</td>
+                                                <td>75</td>
+                                                <td>52 – 57 V</td>
+                                                <td>62</td>
+                                                <td>51 – 57 V</td>
+                                            </tr>
+                                            <tr>
+                                                <td>8</td>
+                                                <td>IEEE 802.3bt, Type 4 (4 pair)</td>
+                                                <td>90</td>
+                                                <td>52 – 57 V</td>
+                                                <td>73</td>
+                                                <td>51 – 57 V</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
 
 
                         <!-- Power Management Modes Section -->
