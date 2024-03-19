@@ -47,9 +47,12 @@
                                 data-bs-parent="#accordionFlushExample">
                                 <div class="accordion-body">
                                     <ol>
-                                        <li>To get started, select a switch from the dropdown, or, select custom, and fill in the Wattage in the newly available field.</li>
-                                        <li>Then, enter the number of devices for each PoE class in the respective input fields.</li>
-                                        <li>The calculator will dynamically compute the leftover budget after considering the power consumption of the devices.</li>
+                                        <li>To get started, select a switch from the dropdown, or, select custom, and
+                                            fill in the Wattage in the newly available field.</li>
+                                        <li>Then, enter the number of devices for each PoE class in the respective input
+                                            fields.</li>
+                                        <li>The calculator will dynamically compute the leftover budget after
+                                            considering the power consumption of the devices.</li>
                                         <li>You can view the PoE power allocation table to understand the power limits
                                     </ol>
                                 </div>
@@ -262,43 +265,64 @@
 
         <!-- Start calculator itself -->
         <section class="container mt-5">
-            <div class="form-group row">
+            <!-- Switch Family Selection -->
+            <div class="form-group row mb-3">
+                <label for="switchFamilySelection" class="col-sm-6 col-form-label">Select switch family</label>
                 <div class="col-sm-6">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="m4350Family" onchange="updateDropdownOptions()">
-                        <label class="form-check-label" for="m4350Family">
-                            M4350 Family
-                        </label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="m4350Family"
+                            onchange="toggleRedundancyOptions(this.checked, 'm4350')">
+                        <label class="form-check-label" for="m4350Family">M4350 Family</label>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="m4250Family" onchange="updateDropdownOptions()">
-                        <label class="form-check-label" for="m4250Family">
-                            M4250 Family
-                        </label>
-                    </div>
-                </div>
-                <div class="col-sm-6">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="psuRedundancy" onchange="updateDropdownOptions()" disabled>
-                        <label class="form-check-label" for="psuRedundancy">
-                            PSU Redundancy
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="noPsuRedundancy" onchange="updateDropdownOptions()" disabled>
-                        <label class="form-check-label" for="noPsuRedundancy">
-                            No PSU Redundancy
-                        </label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="m4250Family"
+                            onchange="toggleRedundancyOptions(this.checked, 'm4250')">
+                        <label class="form-check-label" for="m4250Family">M4250 Family</label>
                     </div>
                 </div>
             </div>
+
+            <!-- PSU Redundancy Selection -->
+            <div class="form-group row mb-3" id="psuRedundancyOptions" style="display: none;">
+                <label class="col-sm-6 col-form-label">Select PSU redundancy</label>
+                <div class="col-sm-6">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="psuRedundancy"
+                            onchange="updateDropdownOptions()">
+                        <label class="form-check-label" for="psuRedundancy">PSU Redundancy</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="noPsuRedundancy"
+                            onchange="updateDropdownOptions()">
+                        <label class="form-check-label" for="noPsuRedundancy">No PSU Redundancy</label>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Switch Selection Dropdown -->
             <div class="form-group row">
                 <label for="switchSelection" class="col-sm-6 col-form-label">Select a NETGEAR switch</label>
                 <div class="col-sm-6">
                     <select class="form-select" id="switchSelection" onchange="switchChanged()">
                         <option value="default" selected disabled>Select a NETGEAR switch</option>
+                        <!-- Switch options will be populated here based on selection above -->
                         <option value="custom">Custom</option>
                     </select>
+                </div>
+            </div>
+            <!-- Custom PoE Budget Field -->
+            <div id="customBudgetField" style="display: none;">
+                <div class="form-group row">
+                    <label for="customBudget" class="col-sm-6 col-form-label">Custom PoE Budget (W)</label>
+                    <div class="col-sm-6">
+                        <div class="input-group">
+                            <input type="number" placeholder="Enter custom PoE budget" class="form-control"
+                                id="customBudget" oninput="calculateLeftoverBudget()">
+                            <span class="input-group-text">W</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="customBudgetField" style="display: none;">
@@ -425,13 +449,14 @@
     <!-- Container for full body - we require this container, for the Shepherd guide to work, and highlight the data -->
 
     <!-- Start footer -->
-<footer class="footer mt-auto py-3 mt-5">
-    <div class="container text-center text-mute">
-        <p>Created by <a href="https://github.com/MichaelDNTGR" target="_blank">Michael Dijk</a>, AV Systems Engineer at <a href="mailto:mdijk@netgear.com">NETGEAR</a></p>
-        <p>&copy; <span id="currentYear"></span> All rights reserved.</p>
-    </div>
-</footer>
-<!-- End footer -->
+    <footer class="footer mt-auto py-3 mt-5">
+        <div class="container text-center text-mute">
+            <p>Created by <a href="https://github.com/MichaelDNTGR" target="_blank">Michael Dijk</a>, AV Systems
+                Engineer at <a href="mailto:mdijk@netgear.com">NETGEAR</a></p>
+            <p>&copy; <span id="currentYear"></span> All rights reserved.</p>
+        </div>
+    </footer>
+    <!-- End footer -->
 
 
     <!-- Bootstrap scripts -->
