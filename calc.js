@@ -1,9 +1,7 @@
-// Function to update switch selection dropdown based on the selected switch family and redundancy options
 function updateDropdownOptions() {
     const m4350Family = document.getElementById('m4350Family').checked;
     const m4250Family = document.getElementById('m4250Family').checked;
     const psuRedundancy = document.getElementById('psuRedundancy').checked;
-    const noPsuRedundancy = document.getElementById('noPsuRedundancy').checked;
     const switchSelection = document.getElementById('switchSelection');
 
     // Clear current options except for the default and custom
@@ -13,64 +11,56 @@ function updateDropdownOptions() {
         }
     }
 
-    // Enable or disable PSU redundancy checkboxes based on family selection
-    document.getElementById('psuRedundancy').disabled = !m4350Family;
-    document.getElementById('noPsuRedundancy').disabled = !m4350Family;
-
-    // Populate the dropdown based on selected options
     if (m4350Family) {
         if (psuRedundancy) {
-            switchSelection.options[switchSelection.options.length] = new Option('M4250-10G2F-PoE+ + APS1200 (125W)', 'M4250-10G2F-PoE+ + APS1200 (125W)');
-            // Add more M4350 options with redundant PSU here
-        } else if (noPsuRedundancy) {
-            switchSelection.options[switchSelection.options.length] = new Option('M4250-10G2F-PoE+ (125W)', 'M4250-10G2F-PoE+ (125W)');
-            // Add more M4350 options without redundant PSU here
+            // Add M4350 options with PSU redundancy here
+            switchSelection.options[switchSelection.options.length] = new Option('PSURED-M4350-10G2F-PoE+ + APS1200 (125W)', 'PSURED-M4350-10G2F-PoE+ + APS1200 (125W)');
+            // More M4350 options with redundancy can be added here
         } else {
-            switchSelection.options[switchSelection.options.length] = new Option('M4250-10G2F-PoE+ + APS1200 (125W)', 'M4250-10G2F-PoE+ + APS1200 (125W)');
-            switchSelection.options[switchSelection.options.length] = new Option('M4250-10G2F-PoE+ (125W)', 'M4250-10G2F-PoE+ (125W)');
-            // Add more M4350 options with and without redundant PSU here
+            // Add M4350 options without PSU redundancy here
+            switchSelection.options[switchSelection.options.length] = new Option('M4350-10G2F-PoE+ (125W)', 'M4350-10G2F-PoE+ (125W)');
+            // More M4350 options without redundancy can be added here
         }
-        // Add any other M4350 options that do not depend on PSU redundancy here
+    } else if (m4250Family) {
+        // Add M4250 options here since PSU redundancy is not applicable
+        switchSelection.options[switchSelection.options.length] = new Option('M4250-50G2F-PoE+ (125W)', 'M4250-50G2F-PoE+ (125W)');
+        switchSelection.options[switchSelection.options.length] = new Option('M4250-100G2F-PoE+ (125W)', 'M4250-100G2F-PoE+ (125W)');
+        // More M4250 options can be added here
     }
-    if (m4250Family) {
-        switchSelection.options[switchSelection.options.length] = new Option('M4250-10G2F-PoE+ (125W)', 'M4250-10G2F-PoE+ (125W)');
-        // Add more M4250 options here
-    }
-    // Reset redundancy checkboxes if no family is selected
-    if (!m4350Family && !m4250Family) {
-        document.getElementById('psuRedundancy').checked = false;
-        document.getElementById('noPsuRedundancy').checked = false;
-    }
+    
     calculateLeftoverBudget(); // Recalculate budget whenever the dropdown options update
 }
 
+
+
 // Function to toggle redundancy options based on M4350/M4250 family selection
 function toggleRedundancyOptions(isChecked, family) {
-    // Get the redundancy options container
     const redundancyOptions = document.getElementById('psuRedundancyOptions');
-    
-    // Show or hide the redundancy options based on M4350 family checkbox
-    redundancyOptions.style.display = (isChecked && family === 'm4350') ? 'block' : 'none';
+    const psuRedundancyCheckbox = document.getElementById('psuRedundancy');
 
-    // If M4250 is checked or none is checked, ensure redundancy options are hidden
-    if (family === 'm4250' || (!isChecked && family === 'm4350')) {
+    // Show or hide the redundancy options based on M4350 family checkbox
+    if (isChecked && family === 'm4350') {
+        redundancyOptions.style.display = 'block';
+        psuRedundancyCheckbox.disabled = false; // Ensure the checkbox is enabled
+    } else {
         redundancyOptions.style.display = 'none';
-        document.getElementById('psuRedundancy').checked = false;
-        document.getElementById('noPsuRedundancy').checked = false;
+        psuRedundancyCheckbox.checked = false; // Uncheck and disable the checkbox when M4250 is selected or when none is selected
+        psuRedundancyCheckbox.disabled = true;
     }
 
     // Make sure the M4250 family checkbox is unchecked when M4350 is checked and vice versa
     if (family === 'm4350') {
         document.getElementById('m4250Family').checked = false;
+        psuRedundancyCheckbox.disabled = false; // Re-enable the checkbox when M4350 is selected
     } else if (family === 'm4250') {
         document.getElementById('m4350Family').checked = false;
-        // Also, disable PSU redundancy options
-        document.getElementById('psuRedundancy').disabled = true;
-        document.getElementById('noPsuRedundancy').disabled = true;
+        psuRedundancyCheckbox.disabled = true; // Disable the checkbox when M4250 is selected
     }
 
     updateDropdownOptions(); // Update the dropdown options based on the selection
 }
+
+
 
 // Function to retrieve the selected switch's budget
 function getSelectedSwitchBudget() {
