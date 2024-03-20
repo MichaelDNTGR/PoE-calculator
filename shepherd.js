@@ -17,11 +17,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         tour.addStep({
             id: 'step1',
-            text: 'Welcome to the PoE Calculator tutorial! This tutorial will guide you through the usage of this tool. You can skip the tutorial anytime, by pressing the "x".',
-            attachTo: {
-                element: '.containerall',
-                on: 'bottom',
-            },
+            text: 'Welcome to the PoE Calculator tutorial! This tutorial will guide you through the usage of this tool. You can skip the tutorial anytime, by pressing the "x" or the skip button here below.',
+            // attachTo: {
+            //     element: '.containerall',
+            //     on: 'bottom',
+            // },
             buttons: [
                 {
                     text: 'Skip',
@@ -36,12 +36,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         tour.addStep({
             id: 'step2',
-            text: 'To get started, select a switch from the dropdown, or, select custom, and fill in the Wattage in the newly available field.',
+            text: 'To get started, select a switch family (M4250 or M4350), or, select custom in the dropdown, and fill in the Wattage in the custom field that will become visible upon selecting "custom".',
             attachTo: {
-                element: '#switchSelection',
+                element: '#switchSelectionAllOptionsForShepherd',
                 on: 'bottom',
             },
             buttons: [
+                {
+                    text: 'Skip',
+                    action: tour.cancel,
+                },
                 {
                     text: 'Next',
                     action: tour.next,
@@ -58,6 +62,10 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             buttons: [
                 {
+                    text: 'Skip',
+                    action: tour.cancel,
+                },
+                {
                     text: 'Next',
                     action: tour.next,
                 },
@@ -68,10 +76,14 @@ document.addEventListener('DOMContentLoaded', function () {
             id: 'step4',
             text: 'The calculator will dynamically compute the leftover budget after considering the power consumption of the devices.',
             attachTo: {
-                element: '#leftoverBudget',
+                element: '#leftOverBudgetFieldShepherd',
                 on: 'bottom',
             },
             buttons: [
+                {
+                    text: 'Skip',
+                    action: tour.cancel,
+                },
                 {
                     text: 'Next',
                     action: tour.next,
@@ -88,6 +100,10 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             buttons: [
                 {
+                    text: 'Skip',
+                    action: tour.cancel,
+                },
+                {
                     text: 'Next',
                     action: tour.next,
                 },
@@ -103,6 +119,10 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             buttons: [
                 {
+                    text: 'Skip',
+                    action: tour.cancel,
+                },
+                {
                     text: 'Next',
                     action: tour.next,
                 },
@@ -117,6 +137,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 on: 'bottom',
             },
             buttons: [
+                {
+                    text: 'Skip',
+                    action: tour.cancel,
+                },
                 {
                     text: 'Finish',
                     action: tour.complete,
