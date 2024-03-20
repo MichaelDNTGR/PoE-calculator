@@ -284,22 +284,15 @@
 
             <!-- PSU Redundancy Selection -->
             <div class="form-group row mb-3" id="psuRedundancyOptions" style="display: none;">
-                <label class="col-sm-6 col-form-label">Select PSU redundancy</label>
+                <label class="col-sm-6 col-form-label">Do you require PSU redundancy?</label>
                 <div class="col-sm-6">
-                    <div class="form-check form-check-inline">
+                    <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="psuRedundancy"
                             onchange="updateDropdownOptions()">
-                        <label class="form-check-label" for="psuRedundancy">PSU Redundancy</label>
-                    </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="noPsuRedundancy"
-                            onchange="updateDropdownOptions()">
-                        <label class="form-check-label" for="noPsuRedundancy">No PSU Redundancy</label>
+                        <label class="form-check-label" for="psuRedundancy">Yes</label>
                     </div>
                 </div>
             </div>
-
-
 
             <!-- Switch Selection Dropdown -->
             <div class="form-group row">
@@ -312,6 +305,7 @@
                     </select>
                 </div>
             </div>
+
             <!-- Custom PoE Budget Field -->
             <div id="customBudgetField" style="display: none;">
                 <div class="form-group row">
@@ -431,6 +425,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- Leftover Budget Display -->
             <div class="form-group row">
                 <label for="leftoverBudget" class="col-sm-6 col-form-label">Leftover Budget (W)</label>
@@ -441,7 +436,6 @@
                     </div>
                 </div>
             </div>
-
         </section>
         <!-- End calculator itself -->
 
