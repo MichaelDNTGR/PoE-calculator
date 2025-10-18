@@ -47,13 +47,11 @@
                                 data-bs-parent="#accordionFlushExample">
                                 <div class="accordion-body">
                                     <ol>
-                                        <li>To get started, select a switch from the dropdown, or, select custom, and
-                                            fill in the Wattage in the newly available field.</li>
-                                        <li>Then, enter the number of devices for each PoE class in the respective input
-                                            fields.</li>
-                                        <li>The calculator will dynamically compute the leftover budget after
-                                            considering the power consumption of the devices.</li>
-                                        <li>You can view the PoE power allocation table to understand the power limits
+                                        <li>Select a switch from the dropdown. For M4350 switches with modular PSUs, additional options will appear.</li>
+                                        <li>For M4350 switches, choose whether the internal PSU is connected and select optional external PSUs.</li>
+                                        <li>Enter the number of devices for each PoE class in the respective input fields.</li>
+                                        <li>The calculator will dynamically compute the leftover budget after considering the power consumption of the devices.</li>
+                                        <li>You can view the PoE power allocation table to understand the power limits and standards for each class.</li>
                                     </ol>
                                 </div>
                             </div>
@@ -270,22 +268,80 @@
                 <div class="col-sm-6">
                     <select class="form-select" id="switchSelection" onchange="switchChanged()">
                         <option value="default" selected disabled>Select a NETGEAR switch</option>
-                        <option value="M4250-10G2F-PoE+ (125W)">M4250-10G2F-PoE+ (125W)</option>
-                        <option value="M4250-10G2XF-PoE+ (240W)">M4250-10G2XF-PoE+ (240W)</option>
-                        <option value="M4250-10G2XF-PoE++ (720W)">M4250-10G2XF-PoE++ (720W)</option>
-                        <option value="M4250-26G4F-PoE+ (300W)">M4250-26G4F-PoE+ (300W)</option>
-                        <option value="M4250-26G4F-PoE++ (1440W)">M4250-26G4F-PoE++ (1440W) Two PSU</option>
-                        <option value="M4250-26G4F-PoE++ (720W)">M4250-26G4F-PoE+ (720W) One PSU</option>
-                        <option value="M4250-26G4XF-PoE+ (480W)">M4250-26G4XF-PoE+ (480W)</option>
-                        <option value="M4250-40G8F-PoE+ (480W)">M4250-26G4XF-PoE+ (480W)</option>
-                        <option value="M4250-40G8XF-PoE+ (960W)">M4250-40G8XF-PoE+ (960W)</option>
-                        <option value="M4250-40G8XF-PoE++ (2880W)">M4250-40G8XF-PoE++ (2880W) Three PSU</option>
-                        <option value="M4250-40G8XF-PoE++ (1650W)">M4250-40G8XF-PoE++ (1650W) Two PSU</option>
-                        <option value="M4250-40G8XF-PoE++ (720W)">M4250-40G8XF-PoE++ (720W) One PSU</option>
+                        <optgroup label="M4250 Series (Fixed PSU)">
+                            <option value="M4250-10G2F-PoE+ (125W)">M4250-10G2F-PoE+ (125W)</option>
+                            <option value="M4250-10G2XF-PoE+ (240W)">M4250-10G2XF-PoE+ (240W)</option>
+                            <option value="M4250-10G2XF-PoE++ (720W)">M4250-10G2XF-PoE++ (720W)</option>
+                            <option value="M4250-26G4F-PoE+ (300W)">M4250-26G4F-PoE+ (300W)</option>
+                            <option value="M4250-26G4F-PoE++ (1440W)">M4250-26G4F-PoE++ (1440W) Two PSU</option>
+                            <option value="M4250-26G4F-PoE++ (720W)">M4250-26G4F-PoE+ (720W) One PSU</option>
+                            <option value="M4250-26G4XF-PoE+ (480W)">M4250-26G4XF-PoE+ (480W)</option>
+                            <option value="M4250-40G8F-PoE+ (480W)">M4250-40G8F-PoE+ (480W)</option>
+                            <option value="M4250-40G8XF-PoE+ (960W)">M4250-40G8XF-PoE+ (960W)</option>
+                            <option value="M4250-40G8XF-PoE++ (2880W)">M4250-40G8XF-PoE++ (2880W) Three PSU</option>
+                            <option value="M4250-40G8XF-PoE++ (1650W)">M4250-40G8XF-PoE++ (1650W) Two PSU</option>
+                            <option value="M4250-40G8XF-PoE++ (720W)">M4250-40G8XF-PoE++ (720W) One PSU</option>
+                        </optgroup>
+                        <optgroup label="M4350 Series (Modular PSU)">
+                            <option value="M4350-24G4XF">M4350-24G4XF (GSM4328)</option>
+                            <option value="M4350-48G4XF">M4350-48G4XF (GSM4352)</option>
+                            <option value="M4350-8M2V">M4350-8M2V (MSM4310)</option>
+                            <option value="M4350-24M4X4V">M4350-24M4X4V (MSM4332)</option>
+                            <option value="M4350-44M4X4V">M4350-44M4X4V (MSM4352)</option>
+                            <option value="M4350-24F4X">M4350-24F4X (MSM4328F)</option>
+                            <option value="M4350-24X4V">M4350-24X4V (XSM4328CV)</option>
+                            <option value="M4350-24F4V">M4350-24F4V (XSM4328FV)</option>
+                            <option value="M4350-36X4V">M4350-36X4V (XSM4340CV)</option>
+                            <option value="M4350-24X8F8V">M4350-24X8F8V (XSM4340V)</option>
+                            <option value="M4350-32F8V">M4350-32F8V (XSM4340FV)</option>
+                            <option value="M4350-16V4C">M4350-16V4C (VSM4320C)</option>
+                            <option value="M4350-40X4C">M4350-40X4C (XSM4344C)</option>
+                            <option value="M4350-40F4C">M4350-40F4C (XSM4344FC)</option>
+                        </optgroup>
                         <option value="custom">Custom</option>
                     </select>
                 </div>
             </div>
+
+            <!-- M4350 PSU Configuration (hidden by default) -->
+            <div id="m4350PsuConfig" style="display: none;">
+                <div class="alert alert-info" role="alert">
+                    <strong>M4350 Modular PSU Configuration</strong><br>
+                    Configure the internal PSU and optional external PSUs for your M4350 switch.
+                </div>
+                
+                <!-- Internal PSU -->
+                <div class="form-group row">
+                    <label for="internalPsuConnected" class="col-sm-6 col-form-label">Internal PSU Connected?</label>
+                    <div class="col-sm-6">
+                        <select class="form-select" id="internalPsuConnected" onchange="calculateLeftoverBudget()">
+                            <option value="connected">Connected</option>
+                            <option value="disconnected">Disconnected</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- PSU Slot 1 -->
+                <div class="form-group row">
+                    <label for="psuSlot1" class="col-sm-6 col-form-label">PSU Slot 1</label>
+                    <div class="col-sm-6">
+                        <select class="form-select" id="psuSlot1" onchange="calculateLeftoverBudget()">
+                            <option value="disconnected">Disconnected</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- PSU Slot 2 -->
+                <div class="form-group row" id="psuSlot2Row" style="display: none;">
+                    <label for="psuSlot2" class="col-sm-6 col-form-label">PSU Slot 2</label>
+                    <div class="col-sm-6">
+                        <select class="form-select" id="psuSlot2" onchange="calculateLeftoverBudget()">
+                            <option value="disconnected">Disconnected</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <div id="customBudgetField" style="display: none;">
                 <div class="form-group row">
                     <label for="customBudget" class="col-sm-6 col-form-label">Custom PoE Budget (W)</label>

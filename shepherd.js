@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         tour.addStep({
             id: 'step2',
-            text: 'To get started, select a switch from the dropdown, or, select custom, and fill in the Wattage in the newly available field.',
+            text: 'To get started, select a switch from the dropdown. For M4350 switches with modular PSUs, additional configuration options will appear.',
             attachTo: {
                 element: '#switchSelection',
                 on: 'bottom',

@@ -121,3 +121,16 @@ h6 {
     background-color: #e9ecef;
     color: #495057;
 }
+
+/* M4350 PSU Configuration styling */
+#m4350PsuConfig {
+    background-color: #f0f8ff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #b8daff;
+}
+
+#m4350PsuConfig .alert {
+    margin-bottom: 15px;
+}
