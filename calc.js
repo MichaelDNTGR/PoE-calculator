@@ -9,6 +9,37 @@
     const fmtW = (w) => `${Math.round(w * 10) / 10 === Math.round(w) ? Math.round(w).toLocaleString('en-US') : (Math.round(w * 10) / 10).toLocaleString('en-US')} W`;
     const classPower = (cls) => POE_CLASSES[cls].pse;
 
+    /* AV and IT modes: each uses only its own NETGEAR brand palette and switch portfolio */
+    const BRANDS = {
+        av: {
+            name: 'NETGEAR AV',
+            logo: 'assets/netgear-av-logo.svg',
+            logoLight: 'assets/netgear-av-logo-light-bg.svg',
+            iconPrefix: '',
+            series: ['M4250', 'M4350'],
+            lede: 'Check whether a NETGEAR M4250 or M4350 AV switch can power your cameras, displays, codecs and microphones, including the effect of extra power supplies and a power supply failure.',
+            exampleSwitch: 'M4250-26G4F-PoE++'
+        },
+        it: {
+            name: 'NETGEAR Enterprise',
+            logo: 'assets/netgear-enterprise-logo-light-bg.svg',
+            logoLight: 'assets/netgear-enterprise-logo-light-bg.svg',
+            iconPrefix: 'it-',
+            series: ['M4350', 'M4300'],
+            lede: 'Check whether a NETGEAR M4350 or M4300 switch can power your access points, IP phones, cameras and IoT devices, including the effect of extra power supplies and a power supply failure.',
+            exampleSwitch: 'M4350-24M4X4V'
+        }
+    };
+
+    const EXAMPLES = {
+        it: [
+            { name: 'WiFi 7 access point', cls: 6, qty: 4, watt: null },
+            { name: 'IP desk phone', cls: 2, qty: 12, watt: null },
+            { name: 'Security camera', cls: 3, qty: 8, watt: null },
+            { name: 'PTZ camera', cls: 4, qty: 2, watt: null }
+        ]
+    };
+
     const EXAMPLE = [
         { name: 'PTZ camera', cls: 4, qty: 4, watt: null },
         { name: 'Ceiling microphone', cls: 3, qty: 6, watt: null },
@@ -18,6 +49,7 @@
     ];
 
     const state = {
+        mode: 'av',
         switchId: '',
         customBudget: 0,
         voltage: '220',
@@ -82,7 +114,7 @@
     function buildSwitchSelect() {
         const sel = $('switchSelect');
         sel.innerHTML = '<option value="" disabled selected>Select a NETGEAR switch</option>';
-        for (const series of Object.keys(SERIES_INFO)) {
+        for (const series of Object.keys(SERIES_INFO).filter((x) => BRANDS[state.mode].series.includes(x))) {
             const og = document.createElement('optgroup');
             og.label = SERIES_INFO[series];
             for (const s of SWITCHES.filter((x) => x.series === series)) {
@@ -326,6 +358,7 @@
 
         const matches = [];
         for (const sw of SWITCHES) {
+            if (!BRANDS[state.mode].series.includes(sw.series)) continue;
             if (series !== 'all' && sw.series !== series) continue;
             if (ports > sw.poePorts) continue;
             if (perPort > sw.maxPort) continue;
@@ -406,7 +439,7 @@
 
     function saveHash() {
         const s = {
-            s: state.switchId, c: state.customBudget, v: state.voltage, d: state.dims, m: state.margin,
+            o: state.mode, s: state.switchId, c: state.customBudget, v: state.voltage, d: state.dims, m: state.margin,
             x: state.devices.map((d) => [d.name, d.cls, Number(d.qty) || 0, d.watt === null ? null : Number(d.watt)])
         };
         try { history.replaceState(null, '', `#${encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(s)))))}`); } catch (e) { /* ignore */ }
@@ -416,6 +449,7 @@
         if (location.hash.length < 2) return false;
         try {
             const s = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(location.hash.slice(1))))));
+            if (s.o === 'it' || s.o === 'av') state.mode = s.o;
             if (s.s && (s.s === 'custom' || getSwitch(s.s))) state.switchId = s.s;
             state.customBudget = Number(s.c) || 0;
             state.voltage = s.v === '110' ? '110' : '220';
@@ -446,65 +480,66 @@
         const sw = getSwitch();
         const cfg = currentConfig();
         const load = loadSummary();
+        const brand = BRANDS[state.mode];
         const el = $('printReport');
         const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
         const voltage = state.voltage === '110' ? '100 - 127 V AC' : '200 - 240 V AC';
         const budget = sw && cfg ? cfg.budget : state.switchId === 'custom' ? Number(state.customBudget) || 0 : null;
-        const over = $('resultCard').classList.contains('over');
+        const redundant = sw && cfg ? cfg.redundant : null;
+        const action = $('resultCard').classList.contains('over');
         const pct = budget ? Math.round((load.total / budget) * 100) : 0;
+        const left = budget !== null ? budget - load.total : null;
+        const marginW = load.withMargin - load.total;
 
-        // Switch and power rows
-        const rows = [];
+        const model = sw ? sw.id : state.switchId === 'custom' ? 'Other switch' : 'No switch selected';
+        const sub = sw ? `${sw.sku} | ${sw.desc}` : state.switchId === 'custom' ? 'Custom PoE budget entered manually' : 'Choose a switch in the calculator';
+
+        // Switch and power details
+        const kv = [];
         if (sw) {
-            rows.push(['Switch', `${sw.id} (${sw.sku})`]);
-            rows.push(['Ports', sw.desc]);
-            rows.push(['PoE ports', `${sw.poePorts} x ${sw.maxPort >= 90 ? 'PoE++ up to 90 W (802.3bt)' : 'PoE+ up to 30 W (802.3at)'}`]);
-            rows.push(['Power setup', cfg ? (Object.values(cfg.dims).join(', ') || 'Fixed internal power supply') : '-']);
-            rows.push(['AC input', voltage]);
+            kv.push(['PoE ports', `${sw.poePorts} x ${sw.maxPort >= 90 ? 'PoE++ up to 90 W' : 'PoE+ up to 30 W'}`]);
+            kv.push(['Power setup', cfg ? (Object.values(cfg.dims).join(', ') || 'Fixed internal power supply') : '-']);
+            kv.push(['AC input', voltage]);
             const codes = cfg ? Object.keys(PSU_INFO).filter((p) => Object.values(cfg.dims).some((v) => new RegExp(`\\b${p}\\b`).test(String(v)))) : [];
-            if (codes.length) rows.push(['PSU order code', codes.map((p) => PSU_INFO[p]).join(', ')]);
-        } else if (state.switchId === 'custom') {
-            rows.push(['Switch', 'Other switch (custom PoE budget)']);
-        } else {
-            rows.push(['Switch', 'No switch selected']);
+            if (codes.length) kv.push(['PSU order code', codes.map((p) => PSU_INFO[p]).join(', ')]);
         }
-        rows.push(['Safety headroom', state.margin ? `${state.margin} %` : 'None']);
+        kv.push(['Safety headroom', state.margin ? `${state.margin} % (${fmtW(marginW)})` : 'None']);
 
-        const stats = [
-            ['POE BUDGET', $('statBudget').textContent],
-            ['DEVICES NEED', $('statLoad').textContent],
-            ['LEFT OVER', $('statLeft').textContent],
-            ['IF ONE PSU FAILS', $('statRedundant').textContent]
+        const figures = [
+            ['PoE budget', budget === null ? '-' : fmtW(budget), sw ? 'From the datasheet' : budget !== null ? 'Entered manually' : ''],
+            ['Devices need', fmtW(load.total), `${load.ports} device${load.ports === 1 ? '' : 's'}`],
+            ['Left over', left === null ? '-' : fmtW(left), left === null ? '' : state.margin ? `${fmtW(budget - load.withMargin)} after headroom` : 'No headroom set'],
+            ['If one PSU fails', redundant === null ? 'n/a' : redundant ? fmtW(redundant) : 'No backup', redundant ? (load.total <= redundant ? 'All devices stay on' : `${fmtW(load.total - redundant)} short`) : 'Single power supply']
         ];
 
         const checks = [...document.querySelectorAll('#checks li')].map((li) => {
-            const mark = li.classList.contains('warn') ? '!' : li.classList.contains('info') ? 'i' : '&#10003;';
-            return `<li class="${li.className}"><span class="mark">${mark}</span><span>${escapeHtml(li.textContent)}</span></li>`;
+            const kind = li.classList.contains('warn') ? 'warn' : li.classList.contains('info') ? 'info' : 'ok';
+            const mark = kind === 'warn' ? '!' : kind === 'info' ? 'i' : '&#10003;';
+            return `<li class="${kind}"><span class="rp-mark">${mark}</span><span>${escapeHtml(li.textContent)}</span></li>`;
         }).join('');
 
         const devices = state.devices.filter((d) => Number(d.qty) > 0);
+        const anyMeasured = devices.some((d) => d.watt !== null && d.watt !== '');
         const deviceRows = devices.map((d) => {
             const q = Math.floor(Number(d.qty) || 0);
             const w = deviceWatt(d);
             const measured = d.watt !== null && d.watt !== '';
-            return `<tr><td>${escapeHtml(d.name) || 'Unnamed device'}</td><td>Class ${d.cls} (${POE_CLASSES[d.cls].type})</td>
-                <td class="num">${q}</td><td class="num">${fmtW(w)}${measured ? ' *' : ''}</td><td class="num">${fmtW(q * w)}</td></tr>`;
+            return `<tr><td>${escapeHtml(d.name) || 'Unnamed device'}</td><td>Class ${d.cls}</td><td>${POE_CLASSES[d.cls].type}</td>
+                <td class="num">${q}</td><td class="num">${fmtW(w)}${measured ? '*' : ''}</td><td class="num">${fmtW(q * w)}</td></tr>`;
         }).join('');
-        const anyMeasured = devices.some((d) => d.watt !== null && d.watt !== '');
 
-        // Finder results, only when printing from the Find a Switch tab
         let finder = '';
         if (!$('panel-find').hidden) {
             const matches = [...document.querySelectorAll('#finderResults .match')].slice(0, 10);
             const summary = document.querySelector('#finderResults .finder-summary, #finderResults h3');
             finder = `
-                <section class="pr-section">
-                    <h2>RECOMMENDED SWITCHES</h2>
-                    <p class="pr-note">${summary ? escapeHtml(summary.textContent) : ''}</p>
-                    ${matches.length ? `<table class="pr-table"><thead><tr><th>Switch</th><th>Power setup</th><th class="num">Budget</th><th class="num">Spare</th></tr></thead><tbody>
+                <section class="rp-section">
+                    <h2>Recommended switches</h2>
+                    <p class="rp-note rp-lead">${summary ? escapeHtml(summary.textContent) : ''}</p>
+                    ${matches.length ? `<table class="rp-table"><thead><tr><th>Switch</th><th>Power setup</th><th class="num">Budget</th><th class="num">Spare</th></tr></thead><tbody>
                     ${matches.map((m) => {
                         const spans = m.querySelectorAll('.budget span');
-                        return `<tr><td>${escapeHtml(m.querySelector('h3').textContent)}</td>
+                        return `<tr><td>${escapeHtml(m.querySelector('h3').firstChild.textContent.trim())}</td>
                             <td>${escapeHtml(m.querySelectorAll('p')[1].textContent.replace(/^Power: /, ''))}</td>
                             <td class="num">${escapeHtml(m.querySelector('.budget strong').textContent)}</td>
                             <td class="num">${escapeHtml((spans[1]?.textContent || '').replace(' SPARE', ''))}</td></tr>`;
@@ -512,44 +547,70 @@
                 </section>`;
         }
 
+        const headroomPos = budget && state.margin ? (budget / (1 + state.margin / 100)) / budget * 100 : null;
+        const redPos = budget && redundant && redundant < budget ? (redundant / budget) * 100 : null;
+
+        el.dataset.brand = state.mode;
         el.innerHTML = `
-            <header class="pr-header">
-                <img src="assets/netgear-av-logo-light-bg.svg" alt="NETGEAR AV">
-                <div class="pr-meta"><span>POE BUDGET REPORT</span><span>${date}</span></div>
+            <header class="rp-head">
+                <img src="${brand.logoLight}" alt="${brand.name}">
+                <div class="rp-head-meta"><span class="rp-title"><span class="thin">PoE budget</span> <strong>report</strong></span><span>${date}</span></div>
             </header>
 
-            <div class="pr-status${over ? ' over' : ''}">
-                <p class="pr-eyebrow">${sw ? escapeHtml(sw.id) : state.switchId === 'custom' ? 'CUSTOM BUDGET' : 'NO SWITCH SELECTED'}</p>
-                <h1>${escapeHtml($('resultTitle').textContent)}</h1>
-                ${budget !== null ? `
-                <div class="pr-gauge"><div class="pr-gauge-fill" style="width:${Math.min(100, pct)}%"></div></div>
-                <p class="pr-note">${pct} % of the PoE budget used${state.margin ? `, ${state.margin} % headroom requested` : ''}.</p>` : ''}
-            </div>
-
-            <dl class="pr-stats">${stats.map(([k, v]) => `<div><dt>${k}</dt><dd>${escapeHtml(v)}</dd></div>`).join('')}</dl>
-
-            ${checks ? `<section class="pr-section"><h2>CHECKS</h2><ul class="pr-checks">${checks}</ul></section>` : ''}
-
-            <section class="pr-section">
-                <h2>SWITCH AND POWER</h2>
-                <table class="pr-table pr-kv"><tbody>${rows.map(([k, v]) => `<tr><th>${k}</th><td>${escapeHtml(v)}</td></tr>`).join('')}</tbody></table>
+            <section class="rp-hero${action ? ' action' : ''}">
+                <div class="rp-hero-top">
+                    <div>
+                        <p class="rp-label">Switch</p>
+                        <h1>${escapeHtml(model)}</h1>
+                        <p class="rp-sub">${escapeHtml(sub)}</p>
+                    </div>
+                    <div class="rp-verdict">
+                        <span class="rp-verdict-icon">${action ? '!' : '&#10003;'}</span>
+                        <div><p class="rp-label">${action ? 'Action needed' : 'Result'}</p><strong>${escapeHtml($('resultTitle').textContent)}</strong></div>
+                    </div>
+                </div>
+                ${budget ? `
+                <div class="rp-meter">
+                    <div class="rp-bar">
+                        <div class="rp-fill" style="width:${Math.min(100, pct)}%"></div>
+                        ${headroomPos !== null ? `<div class="rp-headroom" style="left:${headroomPos}%"></div>` : ''}
+                        ${redPos !== null ? `<div class="rp-red" style="left:${redPos}%"></div>` : ''}
+                    </div>
+                    <div class="rp-scale"><span>0 W</span><span><strong>${pct} %</strong> of the PoE budget used</span><span>${fmtW(budget)}</span></div>
+                    <p class="rp-legend">${headroomPos !== null ? `<span class="lg lg-headroom"></span>${state.margin} % headroom` : ''}${redPos !== null ? `<span class="lg lg-red"></span>Budget if one PSU fails` : ''}</p>
+                </div>` : ''}
             </section>
 
-            <section class="pr-section">
-                <h2>POWERED DEVICES</h2>
-                ${devices.length ? `<table class="pr-table">
-                    <thead><tr><th>Device</th><th>PoE class</th><th class="num">Qty</th><th class="num">W each</th><th class="num">Total</th></tr></thead>
+            <section class="rp-figures">
+                ${figures.map(([k, v, c]) => `<div><p class="rp-label">${k}</p><p class="rp-value">${escapeHtml(v)}</p><p class="rp-note">${escapeHtml(c)}</p></div>`).join('')}
+            </section>
+
+            <div class="rp-cols">
+                <section class="rp-section">
+                    <h2>Checks</h2>
+                    ${checks ? `<ul class="rp-checks">${checks}</ul>` : '<p class="rp-note">Add devices to run the checks.</p>'}
+                </section>
+                <section class="rp-section">
+                    <h2>Switch and power</h2>
+                    <dl class="rp-kv">${kv.map(([k, v]) => `<div><dt>${k}</dt><dd>${escapeHtml(v)}</dd></div>`).join('')}</dl>
+                </section>
+            </div>
+
+            <section class="rp-section">
+                <h2>Powered devices</h2>
+                ${devices.length ? `<table class="rp-table">
+                    <thead><tr><th>Device</th><th>Class</th><th>Type</th><th class="num">Qty</th><th class="num">W each</th><th class="num">Total</th></tr></thead>
                     <tbody>${deviceRows}</tbody>
-                    <tfoot><tr><td colspan="2">Total</td><td class="num">${load.ports}</td><td></td><td class="num">${fmtW(load.total)}</td></tr></tfoot>
+                    <tfoot><tr><td colspan="3">Total</td><td class="num">${load.ports}</td><td></td><td class="num">${fmtW(load.total)}</td></tr></tfoot>
                 </table>
-                <p class="pr-note">W each is the maximum the switch reserves for the PoE class${anyMeasured ? ', or the measured value where marked *' : ''}.</p>` : '<p class="pr-note">No devices added.</p>'}
+                <p class="rp-note">W each is the maximum the switch reserves for the PoE class (static allocation)${anyMeasured ? '. * = measured value entered by the user' : ''}.</p>` : '<p class="rp-note">No devices added.</p>'}
             </section>
 
             ${finder}
 
-            <footer class="pr-footer">
+            <footer class="rp-foot">
                 <p>Budgets are based on the published NETGEAR M4250, M4300 and M4350 datasheets and are provided as guidance only. Confirm your design with the current datasheet before ordering.</p>
-                <p>Open this setup online: <span class="pr-url">${escapeHtml(location.href.split('#')[0])}</span></p>
+                <p>${brand.name} PoE Calculator | ${escapeHtml(location.href.split('#')[0])}</p>
             </footer>`;
     }
 
@@ -573,6 +634,33 @@
         buildPrintReport();
     }
 
+    /* ================= AV / IT mode ================= */
+
+    function applyMode() {
+        const brand = BRANDS[state.mode];
+        document.documentElement.dataset.brand = state.mode;
+        $('brandLogo').src = brand.logo;
+        $('brandLogo').alt = brand.name;
+        $('heroLede').textContent = brand.lede;
+        document.querySelectorAll('img[data-icon]').forEach((img) => (img.src = `assets/icons/${brand.iconPrefix}${img.dataset.icon}.svg`));
+        document.querySelectorAll('input[name="mode"]').forEach((r) => (r.checked = r.value === state.mode));
+        // Finder series options follow the portfolio
+        [...$('findSeries').options].forEach((o) => (o.hidden = o.value !== 'all' && !brand.series.includes(o.value)));
+        if ($('findSeries').selectedOptions[0]?.hidden) $('findSeries').value = 'all';
+        buildSwitchSelect();
+        $('switchSelect').value = state.switchId || '';
+        try { localStorage.setItem('poeCalcMode', state.mode); } catch (e) { /* ignore */ }
+    }
+
+    function setMode(mode) {
+        if (mode === state.mode) return;
+        state.mode = mode;
+        const sw = getSwitch();
+        if (sw && !BRANDS[mode].series.includes(sw.series)) { state.switchId = ''; state.dims = {}; }
+        applyMode();
+        update();
+    }
+
     /* ================= Wire up ================= */
 
     function init() {
@@ -580,8 +668,13 @@
         $('classTable').innerHTML = POE_CLASSES.map((c) =>
             `<tr><td>${c.cls}</td><td>${c.std}</td><td>${c.pse} W</td><td>${c.pd} W</td><td>${c.pseV}</td><td>${c.pdV}</td></tr>`).join('');
 
+        // Mode: shared link > ?mode=it|av > last used
+        try { const m = localStorage.getItem('poeCalcMode'); if (m === 'it' || m === 'av') state.mode = m; } catch (e) { /* ignore */ }
+        const qm = new URLSearchParams(location.search).get('mode');
+        if (qm === 'it' || qm === 'av') state.mode = qm;
         loadHash();
-        $('switchSelect').value = state.switchId || '';
+        applyMode();
+        document.querySelectorAll('input[name="mode"]').forEach((r) => r.addEventListener('change', () => setMode(r.value)));
         $('customBudget').value = state.customBudget || '';
         $('margin').value = String(state.margin);
         document.querySelectorAll('input[name="voltage"]').forEach((r) => (r.checked = r.value === state.voltage));
@@ -609,9 +702,9 @@
             rows[rows.length - 1]?.focus();
         });
         $('loadExample').addEventListener('click', () => {
-            state.devices = EXAMPLE.map((d) => ({ ...d }));
+            state.devices = (EXAMPLES[state.mode] || EXAMPLE).map((d) => ({ ...d }));
             if (!state.switchId) {
-                state.switchId = 'M4250-26G4F-PoE++';
+                state.switchId = BRANDS[state.mode].exampleSwitch;
                 $('switchSelect').value = state.switchId;
                 state.dims = defaultDims(getSwitch());
             }
@@ -648,7 +741,7 @@
     }
 
     // Exposed for the guided tour
-    window.PoECalc = { selectTab, loadExample: () => $('loadExample').click(), hasSwitch: () => !!state.switchId };
+    window.PoECalc = { selectTab, getMode: () => state.mode, loadExample: () => $('loadExample').click(), hasSwitch: () => !!state.switchId };
 
     document.addEventListener('DOMContentLoaded', init);
 })();

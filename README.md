@@ -4,13 +4,22 @@
 
 Plan the PoE budget of NETGEAR M4250, M4300 and M4350 managed switches, including modular power supplies, AC voltage, and power supply redundancy. Or let the calculator find the right switch for your devices.
 
+## AV and IT modes
+
+Use the **AV / IT** switch in the header:
+
+- **AV**: NETGEAR AV branding (dark, green) with the M4250 AV Line and M4350 switches.
+- **IT**: NETGEAR Enterprise branding (light, teal) with the M4350 and M4300 switches.
+
+The switch list, the switch finder, and the PDF report follow the selected mode. Link straight to a mode with `?mode=av` or `?mode=it`, for example `index.html?mode=it`. The last used mode is remembered.
+
 ## Features
 
 - **Check a Switch**: choose a switch and power setup, add your devices, and see the budget, what is left, and what happens if one power supply fails.
 - **Find a Switch**: enter a load (or use your device list) and get every switch and power setup that fits, best fit first.
 - Every PoE budget comes from the official NETGEAR datasheets (see `data.js`).
 - Checks for PoE port count, PoE++ (802.3bt) needs, per-port limits, safety headroom, and redundancy.
-- Share an exact setup with Copy Link, or print it.
+- Share an exact setup with Copy Link, or Print / Save as PDF for a branded one-page report.
 - Guided tour for first-time users (restart it any time with Take the Tour).
 
 ## Supported switches

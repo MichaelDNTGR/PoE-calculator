@@ -19,6 +19,11 @@
             target: null
         },
         {
+            title: 'AV or IT',
+            text: 'Choose AV for the M4250 and M4350 AV switches, or IT for the M4350 and M4300. The switch list, the switch finder, and the PDF report follow your choice.',
+            target: '#modeSwitch'
+        },
+        {
             title: 'Choose a switch',
             text: 'Pick a NETGEAR M4250, M4350 or M4300 model. The number after each name is its PoE budget range. For any other switch, choose "Other switch" and type its budget.',
             target: '#stepSwitch', tab: 'calc'

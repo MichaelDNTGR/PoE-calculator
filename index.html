@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoE Calculator | NETGEAR AV</title>
+    <title>PoE Calculator | NETGEAR</title>
     <meta name="description" content="Plan the PoE budget of NETGEAR M4250, M4300 and M4350 managed switches, including modular power supplies, and find the right switch for your devices.">
 
     <!-- Favicon -->
@@ -26,8 +26,12 @@
 
     <header class="site-header">
         <div class="wrap header-inner">
-            <img class="logo" src="assets/netgear-av-logo.svg" alt="NETGEAR AV">
+            <img class="logo" id="brandLogo" src="assets/netgear-av-logo.svg" alt="NETGEAR AV">
             <nav class="header-actions" aria-label="Page actions">
+                <div class="segmented mode-switch" id="modeSwitch" role="radiogroup" aria-label="Switch portfolio">
+                    <label><input type="radio" name="mode" value="av" checked><span>AV</span></label>
+                    <label><input type="radio" name="mode" value="it"><span>IT</span></label>
+                </div>
                 <button type="button" class="btn btn-ghost" id="startGuide">Take the Tour</button>
                 <button type="button" class="btn btn-ghost" id="shareLink">Copy Link</button>
                 <button type="button" class="btn btn-ghost" id="printPage">Print</button>
@@ -39,7 +43,7 @@
         <section class="hero">
             <p class="eyebrow">POE BUDGET CALCULATOR</p>
             <h1><span class="thin">Power every device with</span> <strong>confidence</strong></h1>
-            <p class="lede">Check whether a NETGEAR M4250, M4300 or M4350 switch can power your cameras, displays, codecs and access points, including the effect of extra power supplies and a power supply failure.</p>
+            <p class="lede" id="heroLede">Check whether a NETGEAR switch can power your devices, including the effect of extra power supplies and a power supply failure.</p>
         </section>
 
         <div class="tabs" role="tablist" aria-label="Mode">
@@ -55,7 +59,7 @@
 
                     <div class="card" id="stepSwitch">
                         <div class="card-head">
-                            <img src="assets/icons/switch.svg" alt="" class="icon">
+                            <img src="assets/icons/switch.svg" data-icon="switch" alt="" class="icon">
                             <div>
                                 <p class="step">STEP 1</p>
                                 <h2>Choose a switch</h2>
@@ -77,7 +81,7 @@
 
                     <div class="card" id="stepPower">
                         <div class="card-head">
-                            <img src="assets/icons/redundant-power.svg" alt="" class="icon">
+                            <img src="assets/icons/redundant-power.svg" data-icon="redundant-power" alt="" class="icon">
                             <div>
                                 <p class="step">STEP 2</p>
                                 <h2>Set up power supplies</h2>
@@ -97,7 +101,7 @@
 
                     <div class="card" id="stepDevices">
                         <div class="card-head">
-                            <img src="assets/icons/multiple-devices.svg" alt="" class="icon">
+                            <img src="assets/icons/multiple-devices.svg" data-icon="multiple-devices" alt="" class="icon">
                             <div>
                                 <p class="step">STEP 3</p>
                                 <h2>Add your powered devices</h2>
@@ -136,7 +140,7 @@
                 <section id="panel-find" role="tabpanel" aria-labelledby="tab-find" hidden>
                     <div class="card" id="finderCard">
                         <div class="card-head">
-                            <img src="assets/icons/Network_design.svg" alt="" class="icon">
+                            <img src="assets/icons/Network_design.svg" data-icon="Network_design" alt="" class="icon">
                             <div>
                                 <p class="step">SWITCH FINDER</p>
                                 <h2>Tell us what you need to power</h2>
@@ -188,7 +192,7 @@
                 <!-- ============ Reference ============ -->
                 <section class="card reference" id="reference">
                     <div class="card-head">
-                        <img src="assets/icons/list.svg" alt="" class="icon">
+                        <img src="assets/icons/list.svg" data-icon="list" alt="" class="icon">
                         <div>
                             <p class="step">REFERENCE</p>
                             <h2>Good to know</h2>
@@ -255,7 +259,7 @@
             <aside class="col-side">
                 <section class="card result" id="resultCard" aria-live="polite">
                     <div class="card-head">
-                        <img src="assets/icons/PoE.svg" alt="" class="icon result-icon">
+                        <img src="assets/icons/PoE.svg" data-icon="PoE" alt="" class="icon result-icon">
                         <div>
                             <p class="step">RESULT</p>
                             <h2 id="resultTitle">Choose a switch to begin</h2>
