@@ -1,5 +1,40 @@
 # Changelog
 
+## Version 3.0.0 - Redesign, full datasheet data, and switch finder (November 26, 2026)
+
+### Added
+- **Find a Switch** tab: recommends every switch and power setup that can carry a load, best fit first, with a Use This Switch button (closes GitHub issues #2 and #3).
+  - Inputs: required PoE budget, PoE ports, highest per-port power, series, and "must survive a PSU failure".
+  - Auto-fills from the device list and safety headroom.
+- **One dropdown for all M-series switches** with budget ranges and SKU in the label (closes GitHub issue #1).
+- **Missing switches**: M4250-9G1F-PoE+ (110 W), M4250-8G2XF-PoE+ (220 W), M4350-16M4V (530 W up to 1,130 W), and the M4300 PoE models (28G-PoE+, 52G-PoE+, 16X, 96X).
+- **AC input voltage** (100 - 127 V / 200 - 240 V): APS2000W, APS1200Wv2, APS2000Wv2, and M4300 budgets depend on it.
+- **Redundancy check**: shows the PoE budget left if any single PSU fails, per configuration.
+- **Device list** with name, PoE class, quantity, and optional measured wattage per device.
+- **Checks**: PoE port count, PoE++ (802.3bt) requirement, per-port limit, headroom, and redundancy.
+- **Safety headroom** setting (default 10 %).
+- **Copy Link** to share an exact setup, and a print stylesheet.
+- New first-time **guided tour** (no external library, stored in localStorage instead of a cookie), restartable with Take the Tour.
+- Load Example button with a typical meeting room setup.
+
+### Changed
+- Redesigned in the NETGEAR AV brand: Outfit typeface, AV green on Gray 7, official NETGEAR AV logo and icons.
+- All PoE budgets now come straight from the datasheet tables in `data.js`. The previous 80 % estimate for unknown combinations is gone: only published combinations can be selected.
+- Removed Bootstrap, Shepherd.js, and js-cookie. The site has no third-party scripts.
+- Class 8 PD power corrected to 71.3 W (IEEE 802.3bt).
+
+### Fixed
+- M4350 PoE budgets that were missing or wrong. Unlisted combinations used an 80 % estimate that could overstate the budget, for example:
+  - M4350-48G4XF with 1x APS920W: showed 1,176 W, datasheet says 892 W.
+  - M4350-44M4X4V with 1x APS920W: showed 1,176 W, datasheet says 850 W.
+  - M4350-24M4X4V: 110 V and 220 V values were mixed without saying which applied.
+  - M4350-24X4V, -36X4V, -24X8F8V, -40X4C: most PSU combinations fell back to the estimate.
+  - "Internal PSU disconnected" budgets were missing for most models.
+- Non-PoE M4350 models (24F4X, 24F4V, 32F8V, 16V4C, 40F4C) removed from the PoE dropdown.
+
+### Notes
+- M4350-44M4X4V, internal PSU disconnected + 1x APS2000W at 220 V: the datasheet lists 1,794 W, higher than with the internal PSU connected (1,714 W). This looks like a datasheet error, so the calculator uses 1,714 W. Please confirm with product management.
+
 ## Version 2.0.0 - M4350 Series Support (October 18, 2025)
 
 ### Added
