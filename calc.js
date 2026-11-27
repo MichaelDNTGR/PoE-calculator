@@ -442,20 +442,8 @@
         $('findRedundant').checked = state.needRedundant;
     }
 
-    function renderFinder() {
-        $('findVoltageLabel').textContent = state.voltage === '110' ? '100 - 127 V AC' : '200 - 240 V AC';
-        const need = Number($('findBudget').value) || 0;
-        const ports = Number($('findPorts').value) || 0;
-        const perPort = Number($('findPerPort').value) || 0;
-        const series = $('findSeries').value;
-        const needRed = $('findRedundant').checked;
-        const out = $('finderResults');
-
-        if (!need && !ports) {
-            out.innerHTML = '<div class="card"><p class="finder-summary">Enter a required PoE budget or number of ports, or add devices on the Check a Switch tab.</p></div>';
-            return;
-        }
-
+    /* Every switch (in the current AV / IT portfolio) that can carry a load, best fit first */
+    function findMatches({ need, ports, perPort, series = 'all', needRed = false }) {
         const matches = [];
         for (const sw of SWITCHES) {
             if (!BRANDS[state.mode].series.includes(sw.series)) continue;
@@ -473,6 +461,24 @@
             (a.sw.poePorts - ports) - (b.sw.poePorts - ports) ||
             a.cfg.modules - b.cfg.modules ||
             (a.cfg.budget - need) - (b.cfg.budget - need));
+        return matches;
+    }
+
+    function renderFinder() {
+        $('findVoltageLabel').textContent = state.voltage === '110' ? '100 - 127 V AC' : '200 - 240 V AC';
+        const need = Number($('findBudget').value) || 0;
+        const ports = Number($('findPorts').value) || 0;
+        const perPort = Number($('findPerPort').value) || 0;
+        const series = $('findSeries').value;
+        const needRed = $('findRedundant').checked;
+        const out = $('finderResults');
+
+        if (!need && !ports) {
+            out.innerHTML = '<div class="card"><p class="finder-summary">Enter a required PoE budget or number of ports, or add devices on the Check a Switch tab.</p></div>';
+            return;
+        }
+
+        const matches = findMatches({ need, ports, perPort, series, needRed });
 
         const criteria = [
             need ? `${fmtW(need)} budget` : null,
@@ -595,11 +601,11 @@
         const model = sw ? sw.id : state.switchId === 'custom' ? 'Other switch' : 'No switch selected';
         const sub = sw ? `${sw.sku} | ${sw.desc}` : state.switchId === 'custom' ? 'Custom PoE budget entered manually' : 'Choose a switch in the calculator';
 
-        // Switch and power details
+        /* ---------- Page 1 data ---------- */
         const kv = [];
         if (sw) {
             kv.push(['PoE ports', `${sw.poePorts} x ${sw.maxPort >= 90 ? 'PoE++ up to 90 W' : 'PoE+ up to 30 W'}`]);
-            kv.push(['Power setup', cfg ? (Object.values(cfg.dims).join(', ') || 'Fixed internal power supply') : '-']);
+            kv.push(['Power setup', cfg ? setupLabel(cfg) : '-']);
             kv.push(['AC input', voltage]);
             const codes = cfg ? Object.keys(PSU_INFO).filter((p) => Object.values(cfg.dims).some((v) => new RegExp(`\\b${p}\\b`).test(String(v)))) : [];
             if (codes.length) kv.push(['PSU order code', codes.map((p) => PSU_INFO[p]).join(', ')]);
@@ -620,6 +626,22 @@
             return `<li class="${kind}"><span class="rp-mark">${mark}</span><span>${escapeHtml(li.textContent)}</span></li>`;
         }).join('');
 
+        // Power supply recommendation for the selected switch
+        let psuAdvice = '';
+        if (sw && sw.dims.length && load.total > 0) {
+            const rec = recommendPower(sw, load.withMargin);
+            const pick = state.needRedundant ? rec.red : rec.fit;
+            if (pick) {
+                const isCurrent = sameDims(sw, pick, cfg);
+                psuAdvice = `<div class="rp-advice"><p class="rp-label">Recommended power setup for this switch</p>
+                    <p><strong>${escapeHtml(setupLabel(pick))}</strong>: ${fmtW(pick.budget)} PoE, ${pick.redundant ? `${fmtW(pick.redundant)} if one PSU fails` : 'no redundancy'}${isCurrent ? ' (this is the selected setup)' : ''}</p></div>`;
+            }
+        }
+
+        const headroomPos = budget && state.margin ? (1 / (1 + state.margin / 100)) * 100 : null;
+        const redPos = budget && redundant && redundant < budget ? (redundant / budget) * 100 : null;
+
+        /* ---------- Page 2 data ---------- */
         const devices = state.devices.filter((d) => Number(d.qty) > 0);
         const anyMeasured = devices.some((d) => d.watt !== null && d.watt !== '');
         const deviceRows = devices.map((d) => {
@@ -630,30 +652,78 @@
                 <td class="num">${q}</td><td class="num">${fmtW(w)}${measured ? '*' : ''}</td><td class="num">${fmtW(q * w)}</td></tr>`;
         }).join('');
 
-        let finder = '';
-        if (!$('panel-find').hidden) {
-            const matches = [...document.querySelectorAll('#finderResults .match')].slice(0, 10);
-            const summary = document.querySelector('#finderResults .finder-summary, #finderResults h3');
-            finder = `
-                <section class="rp-section">
-                    <h2>Recommended switches</h2>
-                    <p class="rp-note rp-lead">${summary ? escapeHtml(summary.textContent) : ''}</p>
-                    ${matches.length ? `<table class="rp-table"><thead><tr><th>Switch</th><th>Power setup</th><th class="num">Budget</th><th class="num">Spare</th></tr></thead><tbody>
-                    ${matches.map((m) => {
-                        const spans = m.querySelectorAll('.budget span');
-                        return `<tr><td>${escapeHtml(m.querySelector('h3').firstChild.textContent.trim())}</td>
-                            <td>${escapeHtml(m.querySelectorAll('p')[1].textContent.replace(/^Power: /, ''))}</td>
-                            <td class="num">${escapeHtml(m.querySelector('.budget strong').textContent)}</td>
-                            <td class="num">${escapeHtml((spans[1]?.textContent || '').replace(' SPARE', ''))}</td></tr>`;
-                    }).join('')}</tbody></table>` : ''}
-                </section>`;
-        }
+        // Recommended switches: finder inputs when printing from that tab, otherwise the device list
+        const fromFinder = !$('panel-find').hidden;
+        const crit = fromFinder
+            ? { need: Number($('findBudget').value) || 0, ports: Number($('findPorts').value) || 0, perPort: Number($('findPerPort').value) || 0, series: $('findSeries').value, needRed: $('findRedundant').checked }
+            : { need: Math.ceil(load.withMargin), ports: load.ports, perPort: load.maxPort, series: 'all', needRed: state.needRedundant };
+        const matches = crit.need || crit.ports ? findMatches(crit).slice(0, 5) : [];
+        const critText = [
+            crit.need ? `${fmtW(crit.need)} PoE budget${!fromFinder && state.margin ? ` (incl. ${state.margin} % headroom)` : ''}` : null,
+            crit.ports ? `${crit.ports} PoE ports` : null,
+            crit.perPort ? `up to ${fmtW(crit.perPort)} per port` : null,
+            crit.needRed ? 'redundant power' : null
+        ].filter(Boolean).join(', ');
+        const recRows = matches.map(({ sw: m, cfg: c }, i) => `
+            <tr${sw && m.id === sw.id ? ' class="rp-selected"' : ''}>
+                <td><strong>${escapeHtml(m.id)}</strong>${i === 0 ? ' <span class="rp-pill">Best fit</span>' : ''}${sw && m.id === sw.id ? ' <span class="rp-pill alt">Selected</span>' : ''}<br><span class="rp-dim">${escapeHtml(m.sku)} | ${m.poePorts} x ${m.maxPort >= 90 ? 'PoE++' : 'PoE+'}</span></td>
+                <td>${escapeHtml(setupLabel(c))}${c.voltage !== 'any' ? ` <span class="rp-dim">(${c.voltage === '110' ? '100 - 127' : '200 - 240'} V AC)</span>` : ''}</td>
+                <td class="num">${fmtW(c.budget)}</td>
+                <td class="num">${c.redundant ? fmtW(c.redundant) : 'None'}</td>
+                <td class="num">${fmtW(c.budget - crit.need)}</td>
+            </tr>`).join('');
 
-        const headroomPos = budget && state.margin ? (budget / (1 + state.margin / 100)) / budget * 100 : null;
-        const redPos = budget && redundant && redundant < budget ? (redundant / budget) * 100 : null;
+        // Short device lists share page 2 with the recommendations; long lists get their own page
+        const splitPages = devices.length > 10;
+        const totalPages = splitPages ? 3 : 2;
+        const pageFoot = (n) => `
+            <footer class="rp-pagefoot">
+                <span>Calculated from datasheet values. Power only: bandwidth is not checked. Guidance only.</span>
+                <span>${brand.name} PoE Calculator | Page ${n} of ${totalPages}</span>
+            </footer>`;
+        const smallHead = `
+            <header class="rp-head rp-head-small">
+                <img src="${brand.logoLight}" alt="${brand.name}">
+                <div class="rp-head-meta"><span><strong>${escapeHtml(model)}</strong></span><span>${date}</span></div>
+            </header>`;
+
+        const devicesSection = `
+            <section class="rp-section rp-first">
+                <h2>Powered devices</h2>
+                ${devices.length ? `<table class="rp-table${devices.length > 14 ? ' rp-dense' : ''}">
+                    <thead><tr><th>Device</th><th>Class</th><th>Type</th><th class="num">Qty</th><th class="num">W each</th><th class="num">Total</th></tr></thead>
+                    <tbody>${deviceRows}</tbody>
+                    <tfoot><tr><td colspan="3">Total</td><td class="num">${load.ports}</td><td></td><td class="num">${fmtW(load.total)}</td></tr></tfoot>
+                </table>
+                <p class="rp-note">W each is the maximum the switch reserves for the PoE class${anyMeasured ? '. * = measured value entered by the user' : ''}.</p>` : '<p class="rp-note">No devices added.</p>'}
+            </section>`;
+
+        const recSection = `
+            <section class="rp-section">
+                <h2>Recommended switches</h2>
+                ${critText ? `<p class="rp-note rp-lead">Switches in the ${state.mode === 'it' ? 'IT' : 'AV'} portfolio that deliver ${critText}, at ${voltage}. Best fit first, with the smallest power setup that works.</p>` : ''}
+                ${matches.length ? `<table class="rp-table rp-rec">
+                    <thead><tr><th>Switch</th><th>Power setup</th><th class="num">Budget</th><th class="num">If one PSU fails</th><th class="num">Spare</th></tr></thead>
+                    <tbody>${recRows}</tbody>
+                </table>` : `<p class="rp-note">${critText ? 'No single switch in this portfolio meets these requirements. Consider splitting the devices over two switches.' : 'Add devices to get switch recommendations.'}</p>`}
+            </section>`;
+
+        const disclaimer = `
+            <section class="rp-disclaimer">
+                <h2>How to read this report</h2>
+                <ul>
+                    <li><strong>Calculated, not measured.</strong> PoE budgets come from the published NETGEAR datasheets. Device power is the maximum the switch reserves for each PoE class, unless a measured value was entered. Real consumption is usually lower.</li>
+                    <li><strong>Power only.</strong> This report does not check bandwidth, port speeds (1G, 2.5G, 10G), uplink or stacking capacity, multicast or AV over IP traffic, or switch configuration.</li>
+                    <li><strong>Cabling is included.</strong> PoE class values already include the power lost in up to 100 m of cable.</li>
+                    <li><strong>Not included:</strong> ambient temperature, airflow, power supply derating, and future expansion beyond the safety headroom.</li>
+                    <li><strong>Before you order,</strong> confirm the design with the current datasheet and your NETGEAR contact. This report is guidance only.</li>
+                </ul>
+                <p class="rp-note">Open the calculator: ${escapeHtml(location.href.split('#')[0])}</p>
+            </section>`;
 
         el.dataset.brand = state.mode;
         el.innerHTML = `
+        <div class="rp-page">
             <header class="rp-head">
                 <img src="${brand.logoLight}" alt="${brand.name}">
                 <div class="rp-head-meta"><span class="rp-title"><span class="thin">PoE budget</span> <strong>report</strong></span><span>${date}</span></div>
@@ -679,7 +749,7 @@
                         ${redPos !== null ? `<div class="rp-red" style="left:${redPos}%"></div>` : ''}
                     </div>
                     <div class="rp-scale"><span>0 W</span><span><strong>${pct} %</strong> of the PoE budget used</span><span>${fmtW(budget)}</span></div>
-                    <p class="rp-legend">${headroomPos !== null ? `<span class="lg lg-headroom"></span>${state.margin} % headroom` : ''}${redPos !== null ? `<span class="lg lg-red"></span>Budget if one PSU fails` : ''}</p>
+                    <p class="rp-legend">${headroomPos !== null ? `<span><span class="lg lg-headroom"></span>${state.margin} % headroom</span>` : ''}${redPos !== null ? `<span><span class="lg lg-red"></span>Budget if one PSU fails</span>` : ''}</p>
                 </div>` : ''}
             </section>
 
@@ -695,25 +765,19 @@
                 <section class="rp-section">
                     <h2>Switch and power</h2>
                     <dl class="rp-kv">${kv.map(([k, v]) => `<div><dt>${k}</dt><dd>${escapeHtml(v)}</dd></div>`).join('')}</dl>
+                    ${psuAdvice}
                 </section>
             </div>
+            ${pageFoot(1)}
+        </div>
 
-            <section class="rp-section">
-                <h2>Powered devices</h2>
-                ${devices.length ? `<table class="rp-table">
-                    <thead><tr><th>Device</th><th>Class</th><th>Type</th><th class="num">Qty</th><th class="num">W each</th><th class="num">Total</th></tr></thead>
-                    <tbody>${deviceRows}</tbody>
-                    <tfoot><tr><td colspan="3">Total</td><td class="num">${load.ports}</td><td></td><td class="num">${fmtW(load.total)}</td></tr></tfoot>
-                </table>
-                <p class="rp-note">W each is the maximum the switch reserves for the PoE class (static allocation)${anyMeasured ? '. * = measured value entered by the user' : ''}.</p>` : '<p class="rp-note">No devices added.</p>'}
-            </section>
-
-            ${finder}
-
-            <footer class="rp-foot">
-                <p>Budgets are based on the published NETGEAR M4250, M4300 and M4350 datasheets and are provided as guidance only. Confirm your design with the current datasheet before ordering.</p>
-                <p>${brand.name} PoE Calculator | ${escapeHtml(location.href.split('#')[0])}</p>
-            </footer>`;
+        <div class="rp-page">
+            ${smallHead}
+            ${devicesSection}
+            ${splitPages ? '' : recSection + disclaimer}
+            ${pageFoot(2)}
+        </div>
+        ${splitPages ? `<div class="rp-page">${smallHead}${recSection.replace('class="rp-section"', 'class="rp-section rp-first"')}${disclaimer}${pageFoot(3)}</div>` : ''}`;
     }
 
     /* ================= Main update loop ================= */
