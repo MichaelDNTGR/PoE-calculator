@@ -165,6 +165,13 @@
         $('guideBackdrop').addEventListener('click', end);
 
         // First visit only, and not when opening a shared link (the visitor wants to see that setup)
-        if (!storage('get') && !OPENED_SHARED_LINK) setTimeout(start, 400);
+        if (!storage('get') && !OPENED_SHARED_LINK) {
+            // On a first visit the AV / IT picker comes first; the tour starts after a choice
+            if (window.PoECalc && window.PoECalc.pendingModeChoice) {
+                document.addEventListener('poecalc:modechosen', () => setTimeout(start, 300), { once: true });
+            } else {
+                setTimeout(start, 400);
+            }
+        }
     });
 })();

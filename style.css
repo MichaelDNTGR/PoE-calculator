@@ -1,6 +1,9 @@
 /*
- * NETGEAR AV brand styling
- * Palette: AV Green #26E880, Gray 7 #101520, White, plus the corporate gray scale.
+ * NETGEAR AV and Enterprise styling
+ * Two independent settings on <html>:
+ *   data-brand="av|it"      accent color (AV Green #26E880 or Enterprise Teal #1CB9A0)
+ *   data-theme="dark|light" background and text (corporate gray scale)
+ * Only one brand accent is ever active, so palettes are never mixed.
  * Typeface: Outfit. Buttons: 8px radius, Title Case.
  * No red, orange, or yellow: warnings are shown with contrast (white/black panels) and icons.
  */
@@ -284,9 +287,11 @@ td { color: var(--text-2); font-variant-numeric: tabular-nums; }
 
 
 
-/* ---------- IT mode: NETGEAR Enterprise brand (light, teal) ---------- */
-:root[data-brand="it"] {
-    --accent: #1CB9A0;
+/* ---------- Brand: IT mode uses the NETGEAR Enterprise accent ---------- */
+:root[data-brand="it"] { --accent: #1CB9A0; --link: #1CB9A0; }
+
+/* ---------- Theme: light (works for both AV and IT) ---------- */
+:root[data-theme="light"] {
     --accent-hover: #2B3749;
     --on-accent: #101520;
     --bg: #FFFFFF;
@@ -301,27 +306,64 @@ td { color: var(--text-2); font-variant-numeric: tabular-nums; }
     --muted: var(--gray6);
     --faint: var(--gray5);
     --link: #2B3749;
+    color-scheme: light;
 }
-:root[data-brand="it"] a { text-decoration-color: #1CB9A0; text-underline-offset: 2px; }
-:root[data-brand="it"] .btn-primary:hover { color: #FFFFFF; }
-:root[data-brand="it"] .tab[aria-selected="true"] { color: #101520; }
-:root[data-brand="it"] .eyebrow { color: #2B3749; }
-:root[data-brand="it"] .eyebrow::before { content: ''; display: inline-block; width: 18px; height: 3px; background: #1CB9A0; vertical-align: middle; margin-right: 8px; border-radius: 2px; }
-:root[data-brand="it"] .checks li.warn::before { background-image: url("assets/icons/warning-alert-black.svg"); }
-:root[data-brand="it"] .gauge-margin { background: repeating-linear-gradient(135deg, transparent 0 4px, rgba(43,55,73,.25) 4px 6px); }
-:root[data-brand="it"] .card { box-shadow: 0 1px 2px rgba(16,21,32,.04); }
-/* Over budget in IT mode flips to a dark panel (the light theme's inverse) */
-:root[data-brand="it"] .result.over { background: #101520; color: #FFFFFF; border-color: #101520; }
-:root[data-brand="it"] .result.over .step, :root[data-brand="it"] .result.over dt { color: var(--gray4); }
-:root[data-brand="it"] .result.over .stats div, :root[data-brand="it"] .result.over .checks li { background: #2B3749; border-color: #2B3749; color: var(--gray2); }
-:root[data-brand="it"] .result.over .checks li.warn { color: #FFFFFF; border-color: var(--gray4); }
-:root[data-brand="it"] .result.over .checks li.warn::before { background-image: url("assets/icons/warning-alert-white.svg"); }
-:root[data-brand="it"] .result.over .gauge { background: #2B3749; border-color: #2B3749; }
-:root[data-brand="it"] .result.over .gauge-fill { background: repeating-linear-gradient(135deg, #FFFFFF 0 6px, var(--gray3) 6px 12px); }
-:root[data-brand="it"] .result.over .gauge-caption { color: var(--gray4); }
-:root[data-brand="it"] .result.over .gauge-redundant { background: #1CB9A0; }
-:root[data-brand="it"] .mini-bar.over { background: #101520; color: #FFFFFF; border-color: #101520; }
-:root[data-brand="it"] .mini-bar.over span:last-child { color: #FFFFFF; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+/* On white, the accent colors are too light for text: use dark text with an accent mark instead */
+:root[data-theme="light"] a { text-decoration-color: var(--accent); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+:root[data-theme="light"] .btn-primary:hover { color: #FFFFFF; }
+:root[data-theme="light"] .btn-ghost:hover { color: var(--text); }
+:root[data-theme="light"] h1 strong { color: var(--text); background: linear-gradient(transparent 68%, var(--accent) 68%, var(--accent) 92%, transparent 92%); padding: 0 2px; }
+:root[data-theme="light"] .eyebrow { color: var(--gray6); }
+:root[data-theme="light"] .eyebrow::before { content: ''; display: inline-block; width: 18px; height: 3px; background: var(--accent); vertical-align: middle; margin-right: 8px; border-radius: 2px; }
+:root[data-theme="light"] .defs dt { color: var(--text); font-weight: 700; }
+:root[data-theme="light"] .tag.hi { color: var(--text); }
+:root[data-theme="light"] .checks li.warn::before { background-image: url("assets/icons/warning-alert-black.svg"); }
+:root[data-theme="light"] .gauge-margin { background: repeating-linear-gradient(135deg, transparent 0 4px, rgba(43,55,73,.25) 4px 6px); }
+:root[data-theme="light"] .card { box-shadow: 0 1px 2px rgba(16,21,32,.04); }
+/* Over budget on a light page flips to a dark panel (the inverse of the theme) */
+:root[data-theme="light"] .result.over { background: #101520; color: #FFFFFF; border-color: #101520; }
+:root[data-theme="light"] .result.over .step, :root[data-theme="light"] .result.over dt { color: var(--gray4); }
+:root[data-theme="light"] .result.over .stats div, :root[data-theme="light"] .result.over .checks li { background: #2B3749; border-color: #2B3749; color: var(--gray2); }
+:root[data-theme="light"] .result.over .checks li.warn { color: #FFFFFF; border-color: var(--gray4); }
+:root[data-theme="light"] .result.over .checks li.warn::before { background-image: url("assets/icons/warning-alert-white.svg"); }
+:root[data-theme="light"] .result.over .gauge { background: #2B3749; border-color: #2B3749; }
+:root[data-theme="light"] .result.over .gauge-fill { background: repeating-linear-gradient(135deg, #FFFFFF 0 6px, var(--gray3) 6px 12px); }
+:root[data-theme="light"] .result.over .gauge-caption { color: var(--gray4); }
+:root[data-theme="light"] .result.over .gauge-redundant { background: var(--accent); }
+:root[data-theme="light"] .mini-bar.over { background: #101520; color: #FFFFFF; border-color: #101520; }
+:root[data-theme="light"] .mini-bar.over span:last-child { color: #FFFFFF; }
+
+/* ---------- First-visit AV / IT picker ---------- */
+.picker-backdrop { position: fixed; inset: 0; z-index: 80; background: rgba(16, 21, 32, 0.72); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.picker {
+    width: min(720px, 100%); max-height: calc(100vh - 32px); overflow: auto;
+    background: #FFFFFF; color: #101520; border-radius: 16px; padding: 28px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.4);
+}
+.picker .eyebrow { color: #64748B; }
+.picker .eyebrow::before { display: none; }
+.picker h2 { font-size: clamp(24px, 4vw, 32px); font-weight: 700; margin: 6px 0 6px; line-height: 1.1; color: #101520; }
+.picker h2 .thin { font-weight: 100; }
+.picker > p { color: #2B3749; margin: 0 0 20px; }
+.picker-options { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 600px) { .picker-options { grid-template-columns: 1fr 1fr; } }
+.picker-option {
+    font: inherit; text-align: left; cursor: pointer; color: #101520;
+    background: #F8F8F8; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px;
+    display: flex; flex-direction: column; gap: 10px; transition: border-color .15s, background .15s;
+}
+.picker-option:hover, .picker-option:focus-visible { border-color: #101520; background: #FFFFFF; outline: none; }
+.picker-option img { height: 22px; width: auto; align-self: flex-start; }
+.picker-option img.tall { height: 36px; margin: -7px 0; }
+.picker-option strong { font-size: 18px; font-weight: 500; }
+.picker-option span { color: #2B3749; font-size: 14px; }
+.picker-option .models { color: #64748B; font-size: 13px; letter-spacing: 0.02em; }
+.picker-option .go { margin-top: auto; align-self: flex-start; background: #101520; color: #FFFFFF; border-radius: 8px; padding: 8px 14px; font-size: 14px; font-weight: 500; }
+.picker-foot { margin: 16px 0 0; font-size: 13px; color: #64748B; }
+
+.theme-toggle { min-width: 112px; }
 
 /* Header AV / IT switch */
 .mode-switch { padding: 3px; }

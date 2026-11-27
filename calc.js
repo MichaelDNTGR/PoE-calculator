@@ -13,7 +13,7 @@
     const BRANDS = {
         av: {
             name: 'NETGEAR AV',
-            logo: 'assets/netgear-av-logo.svg',
+            logo: { dark: 'assets/netgear-av-logo.svg', light: 'assets/netgear-av-logo-light-bg.svg' },
             logoLight: 'assets/netgear-av-logo-light-bg.svg',
             iconPrefix: '',
             series: ['M4250', 'M4350'],
@@ -22,7 +22,7 @@
         },
         it: {
             name: 'NETGEAR Enterprise',
-            logo: 'assets/netgear-enterprise-logo-light-bg.svg',
+            logo: { dark: 'assets/netgear-enterprise-logo.svg', light: 'assets/netgear-enterprise-logo-light-bg.svg' },
             logoLight: 'assets/netgear-enterprise-logo-light-bg.svg',
             iconPrefix: 'it-',
             series: ['M4350', 'M4300'],
@@ -639,7 +639,7 @@
     function applyMode() {
         const brand = BRANDS[state.mode];
         document.documentElement.dataset.brand = state.mode;
-        $('brandLogo').src = brand.logo;
+        $('brandLogo').src = brand.logo[currentTheme()];
         $('brandLogo').alt = brand.name;
         $('heroLede').textContent = brand.lede;
         document.querySelectorAll('img[data-icon]').forEach((img) => (img.src = `assets/icons/${brand.iconPrefix}${img.dataset.icon}.svg`));
@@ -650,6 +650,48 @@
         buildSwitchSelect();
         $('switchSelect').value = state.switchId || '';
         try { localStorage.setItem('poeCalcMode', state.mode); } catch (e) { /* ignore */ }
+    }
+
+    /* ================= Light / dark theme ================= */
+
+    const currentTheme = () => (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark');
+
+    function applyTheme(theme, store) {
+        document.documentElement.dataset.theme = theme;
+        const btn = $('themeToggle');
+        btn.textContent = theme === 'light' ? 'Dark Mode' : 'Light Mode';
+        btn.setAttribute('aria-pressed', String(theme === 'light'));
+        btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+        $('brandLogo').src = BRANDS[state.mode].logo[theme];
+        if (store) { try { localStorage.setItem('poeCalcTheme', theme); } catch (e) { /* ignore */ } }
+    }
+
+    /* ================= First-visit AV / IT picker ================= */
+
+    function openModePicker() {
+        const picker = $('modePicker');
+        picker.hidden = false;
+        window.PoECalc.pendingModeChoice = true;
+        const first = picker.querySelector('.picker-option');
+        setTimeout(() => first.focus(), 50);
+        const choose = (mode) => {
+            picker.hidden = true;
+            document.removeEventListener('keydown', onKey);
+            window.PoECalc.pendingModeChoice = false;
+            if (mode === state.mode) applyMode(); else setMode(mode);
+            document.dispatchEvent(new CustomEvent('poecalc:modechosen', { detail: mode }));
+        };
+        const onKey = (e) => {
+            if (e.key === 'Escape') choose(state.mode);
+            if (e.key === 'Tab') {
+                const items = [...picker.querySelectorAll('.picker-option')];
+                const i = items.indexOf(document.activeElement);
+                e.preventDefault();
+                items[(i + (e.shiftKey ? -1 : 1) + items.length) % items.length].focus();
+            }
+        };
+        document.addEventListener('keydown', onKey);
+        picker.querySelectorAll('.picker-option').forEach((b) => (b.onclick = () => choose(b.dataset.mode)));
     }
 
     function setMode(mode) {
@@ -668,12 +710,27 @@
         $('classTable').innerHTML = POE_CLASSES.map((c) =>
             `<tr><td>${c.cls}</td><td>${c.std}</td><td>${c.pse} W</td><td>${c.pd} W</td><td>${c.pseV}</td><td>${c.pdV}</td></tr>`).join('');
 
-        // Mode: shared link > ?mode=it|av > last used
-        try { const m = localStorage.getItem('poeCalcMode'); if (m === 'it' || m === 'av') state.mode = m; } catch (e) { /* ignore */ }
+        // Mode: shared link > ?mode=it|av > last used > ask the visitor
+        let storedMode = null;
+        try { storedMode = localStorage.getItem('poeCalcMode'); } catch (e) { /* ignore */ }
+        if (storedMode === 'it' || storedMode === 'av') state.mode = storedMode;
         const qm = new URLSearchParams(location.search).get('mode');
         if (qm === 'it' || qm === 'av') state.mode = qm;
-        loadHash();
+        const fromSharedLink = loadHash();
+        const askMode = !fromSharedLink && !(qm === 'it' || qm === 'av') && !(storedMode === 'it' || storedMode === 'av');
         applyMode();
+        if (askMode) { try { localStorage.removeItem('poeCalcMode'); } catch (e) { /* ignore */ } }
+        applyTheme(currentTheme(), false);
+        $('themeToggle').addEventListener('click', () => applyTheme(currentTheme() === 'light' ? 'dark' : 'light', true));
+        // Follow the operating system theme until the visitor picks one
+        try {
+            window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+                let stored = null;
+                try { stored = localStorage.getItem('poeCalcTheme'); } catch (err) { /* ignore */ }
+                if (!stored) applyTheme(e.matches ? 'light' : 'dark', false);
+            });
+        } catch (e) { /* older browsers */ }
+        if (askMode) openModePicker();
         document.querySelectorAll('input[name="mode"]').forEach((r) => r.addEventListener('change', () => setMode(r.value)));
         $('customBudget').value = state.customBudget || '';
         $('margin').value = String(state.margin);
@@ -741,7 +798,7 @@
     }
 
     // Exposed for the guided tour
-    window.PoECalc = { selectTab, getMode: () => state.mode, loadExample: () => $('loadExample').click(), hasSwitch: () => !!state.switchId };
+    window.PoECalc = { pendingModeChoice: false, selectTab, getMode: () => state.mode, loadExample: () => $('loadExample').click(), hasSwitch: () => !!state.switchId };
 
     document.addEventListener('DOMContentLoaded', init);
 })();

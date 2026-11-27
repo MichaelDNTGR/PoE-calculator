@@ -8,10 +8,12 @@ Plan the PoE budget of NETGEAR M4250, M4300 and M4350 managed switches, includin
 
 Use the **AV / IT** switch in the header:
 
-- **AV**: NETGEAR AV branding (dark, green) with the M4250 AV Line and M4350 switches.
-- **IT**: NETGEAR Enterprise branding (light, teal) with the M4350 and M4300 switches.
+- **AV**: NETGEAR AV branding (AV green) with the M4250 AV Line and M4350 switches.
+- **IT**: NETGEAR Enterprise branding (Enterprise teal) with the M4350 and M4300 switches.
 
-The switch list, the switch finder, and the PDF report follow the selected mode. Link straight to a mode with `?mode=av` or `?mode=it`, for example `index.html?mode=it`. The last used mode is remembered.
+On a first visit, a pop-over asks whether the visitor is planning for AV or IT. The switch list, the switch finder, and the PDF report follow the selected mode. Link straight to a mode with `?mode=av` or `?mode=it`, for example `index.html?mode=it` (this skips the pop-over). The last used mode is remembered.
+
+Both modes have a **light and dark theme**. The page follows the device setting until the visitor uses the Light Mode / Dark Mode button, which is remembered. The PDF report is always white.
 
 ## Features
 
