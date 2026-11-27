@@ -313,17 +313,62 @@ td { color: var(--gray2); font-variant-numeric: tabular-nums; }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 70;
     background: var(--white); color: var(--black); padding: 10px 18px; border-radius: var(--radius); font-weight: 500; }
 
-/* ---------- Print ---------- */
+/* ---------- Print / PDF report ---------- */
+.print-report { display: none; }
+
+@page { size: auto; margin: 14mm 14mm 16mm; }
+
 @media print {
-    body { background: #fff; color: #000; }
-    .site-header .header-actions, .tabs, .row-actions, .c-del, .skip-link, #panel-find, .reference, .guide-pop, .guide-backdrop, .toast, .field.inline { display: none !important; }
-    .site-header { background: #101520; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .card, .stats div, .checks li, .spec-list div { background: #fff !important; color: #000 !important; border-color: #ccc !important; }
-    .layout { display: block; }
-    .col-side { position: static; }
-    .lede, .hint, td, .muted, .checks li { color: #333 !important; }
-    select, input { background: #fff; color: #000; border-color: #ccc; }
-    h1 strong { color: #000; }
+    /* Only the generated report is printed, never the interactive screen */
+    body > *:not(.print-report) { display: none !important; }
+    html, body { background: #fff !important; color: #000; }
+    body { font-size: 10.5pt; line-height: 1.45; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    .print-report { display: block; color: #000; }
+    .print-report h1, .print-report h2 { color: #000; }
+
+    .pr-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8pt; border-bottom: 1.5pt solid #000; margin-bottom: 12pt; }
+    .pr-header img { height: 16pt; width: auto; }
+    .pr-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2pt; font-size: 8.5pt; letter-spacing: 0.1em; color: #64748B; }
+    .pr-meta span:first-child { color: #000; font-weight: 700; }
+
+    .pr-eyebrow { font-size: 9pt; letter-spacing: 0.06em; color: #64748B; font-weight: 500; margin: 0 0 2pt; }
+    .pr-status h1 { font-size: 18pt; font-weight: 500; line-height: 1.15; margin: 0 0 8pt; }
+    .pr-status.over h1::before { content: 'ACTION NEEDED: '; font-weight: 700; }
+    .pr-gauge { position: relative; height: 8pt; border-radius: 4pt; background: #E2E8F0; overflow: hidden; }
+    .pr-gauge-fill { position: absolute; inset: 0 auto 0 0; background: #26E880; }
+    .pr-status.over .pr-gauge-fill { background: #000; }
+    .pr-note { font-size: 8.5pt; color: #64748B; margin: 5pt 0 0; }
+
+    .pr-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8pt; margin: 10pt 0 0; break-inside: avoid; }
+    .pr-stats div { border: 0.75pt solid #CBD5E1; border-radius: 6pt; padding: 6pt 9pt; }
+    .pr-stats dt { font-size: 7.5pt; letter-spacing: 0.1em; color: #64748B; }
+    .pr-stats dd { margin: 2pt 0 0; font-size: 14pt; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+    .pr-section { margin-top: 13pt; }
+    .pr-section h2 { font-size: 8.5pt; letter-spacing: 0.12em; font-weight: 700; margin: 0 0 4pt; padding-bottom: 3pt; border-bottom: 1pt solid #26E880; break-after: avoid; }
+
+    .pr-checks { list-style: none; margin: 0; padding: 0; }
+    .pr-checks li { display: flex; gap: 8pt; padding: 2pt 0; break-inside: avoid; }
+    .pr-checks .mark { flex: 0 0 12pt; height: 12pt; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+        font-size: 7.5pt; font-weight: 700; background: #26E880; color: #000; margin-top: 1pt; }
+    .pr-checks li.warn .mark { background: #000; color: #fff; }
+    .pr-checks li.warn { font-weight: 500; }
+    .pr-checks li.info .mark { background: #CBD5E1; }
+
+    .pr-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+    .pr-table th, .pr-table td { text-align: left; padding: 2.5pt 8pt 2.5pt 0; border-bottom: 0.5pt solid #E2E8F0; vertical-align: top; color: #000; }
+    .pr-table thead th { font-size: 7.5pt; letter-spacing: 0.1em; text-transform: uppercase; color: #64748B; font-weight: 500; border-bottom: 0.75pt solid #94A3B8; }
+    .pr-table tfoot td { font-weight: 700; border-top: 0.75pt solid #000; border-bottom: 0; }
+    .pr-table .num { text-align: right; padding-right: 0; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .pr-table tr { break-inside: avoid; }
+    .pr-table thead { display: table-header-group; }
+    .pr-kv th { width: 30%; font-size: 9pt; color: #64748B; font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+    .pr-footer { margin-top: 14pt; padding-top: 6pt; border-top: 0.5pt solid #CBD5E1; font-size: 8pt; color: #64748B; break-inside: avoid; }
+    .pr-footer p { margin: 0 0 3pt; }
+    .pr-url { color: #000; }
 }
 
 @media (prefers-reduced-motion: reduce) {

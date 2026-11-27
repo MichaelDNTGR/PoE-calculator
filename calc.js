@@ -399,6 +399,7 @@
         $('panel-calc').hidden = !calc;
         $('panel-find').hidden = calc;
         if (!calc) { syncFinderFromDevices(); renderFinder(); }
+        buildPrintReport();
     }
 
     /* ================= Share link (state in URL hash) ================= */
@@ -438,6 +439,120 @@
         toast.timer = setTimeout(() => (t.hidden = true), 2400);
     }
 
+    /* ================= Print / PDF report ================= */
+
+    function buildPrintReport() {
+        saveHash();
+        const sw = getSwitch();
+        const cfg = currentConfig();
+        const load = loadSummary();
+        const el = $('printReport');
+        const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const voltage = state.voltage === '110' ? '100 - 127 V AC' : '200 - 240 V AC';
+        const budget = sw && cfg ? cfg.budget : state.switchId === 'custom' ? Number(state.customBudget) || 0 : null;
+        const over = $('resultCard').classList.contains('over');
+        const pct = budget ? Math.round((load.total / budget) * 100) : 0;
+
+        // Switch and power rows
+        const rows = [];
+        if (sw) {
+            rows.push(['Switch', `${sw.id} (${sw.sku})`]);
+            rows.push(['Ports', sw.desc]);
+            rows.push(['PoE ports', `${sw.poePorts} x ${sw.maxPort >= 90 ? 'PoE++ up to 90 W (802.3bt)' : 'PoE+ up to 30 W (802.3at)'}`]);
+            rows.push(['Power setup', cfg ? (Object.values(cfg.dims).join(', ') || 'Fixed internal power supply') : '-']);
+            rows.push(['AC input', voltage]);
+            const codes = cfg ? Object.keys(PSU_INFO).filter((p) => Object.values(cfg.dims).some((v) => new RegExp(`\\b${p}\\b`).test(String(v)))) : [];
+            if (codes.length) rows.push(['PSU order code', codes.map((p) => PSU_INFO[p]).join(', ')]);
+        } else if (state.switchId === 'custom') {
+            rows.push(['Switch', 'Other switch (custom PoE budget)']);
+        } else {
+            rows.push(['Switch', 'No switch selected']);
+        }
+        rows.push(['Safety headroom', state.margin ? `${state.margin} %` : 'None']);
+
+        const stats = [
+            ['POE BUDGET', $('statBudget').textContent],
+            ['DEVICES NEED', $('statLoad').textContent],
+            ['LEFT OVER', $('statLeft').textContent],
+            ['IF ONE PSU FAILS', $('statRedundant').textContent]
+        ];
+
+        const checks = [...document.querySelectorAll('#checks li')].map((li) => {
+            const mark = li.classList.contains('warn') ? '!' : li.classList.contains('info') ? 'i' : '&#10003;';
+            return `<li class="${li.className}"><span class="mark">${mark}</span><span>${escapeHtml(li.textContent)}</span></li>`;
+        }).join('');
+
+        const devices = state.devices.filter((d) => Number(d.qty) > 0);
+        const deviceRows = devices.map((d) => {
+            const q = Math.floor(Number(d.qty) || 0);
+            const w = deviceWatt(d);
+            const measured = d.watt !== null && d.watt !== '';
+            return `<tr><td>${escapeHtml(d.name) || 'Unnamed device'}</td><td>Class ${d.cls} (${POE_CLASSES[d.cls].type})</td>
+                <td class="num">${q}</td><td class="num">${fmtW(w)}${measured ? ' *' : ''}</td><td class="num">${fmtW(q * w)}</td></tr>`;
+        }).join('');
+        const anyMeasured = devices.some((d) => d.watt !== null && d.watt !== '');
+
+        // Finder results, only when printing from the Find a Switch tab
+        let finder = '';
+        if (!$('panel-find').hidden) {
+            const matches = [...document.querySelectorAll('#finderResults .match')].slice(0, 10);
+            const summary = document.querySelector('#finderResults .finder-summary, #finderResults h3');
+            finder = `
+                <section class="pr-section">
+                    <h2>RECOMMENDED SWITCHES</h2>
+                    <p class="pr-note">${summary ? escapeHtml(summary.textContent) : ''}</p>
+                    ${matches.length ? `<table class="pr-table"><thead><tr><th>Switch</th><th>Power setup</th><th class="num">Budget</th><th class="num">Spare</th></tr></thead><tbody>
+                    ${matches.map((m) => {
+                        const spans = m.querySelectorAll('.budget span');
+                        return `<tr><td>${escapeHtml(m.querySelector('h3').textContent)}</td>
+                            <td>${escapeHtml(m.querySelectorAll('p')[1].textContent.replace(/^Power: /, ''))}</td>
+                            <td class="num">${escapeHtml(m.querySelector('.budget strong').textContent)}</td>
+                            <td class="num">${escapeHtml((spans[1]?.textContent || '').replace(' SPARE', ''))}</td></tr>`;
+                    }).join('')}</tbody></table>` : ''}
+                </section>`;
+        }
+
+        el.innerHTML = `
+            <header class="pr-header">
+                <img src="assets/netgear-av-logo-light-bg.svg" alt="NETGEAR AV">
+                <div class="pr-meta"><span>POE BUDGET REPORT</span><span>${date}</span></div>
+            </header>
+
+            <div class="pr-status${over ? ' over' : ''}">
+                <p class="pr-eyebrow">${sw ? escapeHtml(sw.id) : state.switchId === 'custom' ? 'CUSTOM BUDGET' : 'NO SWITCH SELECTED'}</p>
+                <h1>${escapeHtml($('resultTitle').textContent)}</h1>
+                ${budget !== null ? `
+                <div class="pr-gauge"><div class="pr-gauge-fill" style="width:${Math.min(100, pct)}%"></div></div>
+                <p class="pr-note">${pct} % of the PoE budget used${state.margin ? `, ${state.margin} % headroom requested` : ''}.</p>` : ''}
+            </div>
+
+            <dl class="pr-stats">${stats.map(([k, v]) => `<div><dt>${k}</dt><dd>${escapeHtml(v)}</dd></div>`).join('')}</dl>
+
+            ${checks ? `<section class="pr-section"><h2>CHECKS</h2><ul class="pr-checks">${checks}</ul></section>` : ''}
+
+            <section class="pr-section">
+                <h2>SWITCH AND POWER</h2>
+                <table class="pr-table pr-kv"><tbody>${rows.map(([k, v]) => `<tr><th>${k}</th><td>${escapeHtml(v)}</td></tr>`).join('')}</tbody></table>
+            </section>
+
+            <section class="pr-section">
+                <h2>POWERED DEVICES</h2>
+                ${devices.length ? `<table class="pr-table">
+                    <thead><tr><th>Device</th><th>PoE class</th><th class="num">Qty</th><th class="num">W each</th><th class="num">Total</th></tr></thead>
+                    <tbody>${deviceRows}</tbody>
+                    <tfoot><tr><td colspan="2">Total</td><td class="num">${load.ports}</td><td></td><td class="num">${fmtW(load.total)}</td></tr></tfoot>
+                </table>
+                <p class="pr-note">W each is the maximum the switch reserves for the PoE class${anyMeasured ? ', or the measured value where marked *' : ''}.</p>` : '<p class="pr-note">No devices added.</p>'}
+            </section>
+
+            ${finder}
+
+            <footer class="pr-footer">
+                <p>Budgets are based on the published NETGEAR M4250, M4300 and M4350 datasheets and are provided as guidance only. Confirm your design with the current datasheet before ordering.</p>
+                <p>Open this setup online: <span class="pr-url">${escapeHtml(location.href.split('#')[0])}</span></p>
+            </footer>`;
+    }
+
     /* ================= Main update loop ================= */
 
     function update(rebuildPower = true) {
@@ -455,6 +570,7 @@
         renderResult();
         if (!$('panel-find').hidden) { syncFinderFromDevices(); renderFinder(); }
         saveHash();
+        buildPrintReport();
     }
 
     /* ================= Wire up ================= */
@@ -514,16 +630,17 @@
             }
         });
 
-        ['findBudget', 'findPorts', 'findPerPort'].forEach((id) => $(id).addEventListener('input', () => { $('findSync').checked = false; renderFinder(); }));
-        ['findSeries', 'findRedundant'].forEach((id) => $(id).addEventListener('change', renderFinder));
-        $('findSync').addEventListener('change', () => { syncFinderFromDevices(); renderFinder(); });
+        ['findBudget', 'findPorts', 'findPerPort'].forEach((id) => $(id).addEventListener('input', () => { $('findSync').checked = false; renderFinder(); buildPrintReport(); }));
+        ['findSeries', 'findRedundant'].forEach((id) => $(id).addEventListener('change', () => { renderFinder(); buildPrintReport(); }));
+        $('findSync').addEventListener('change', () => { syncFinderFromDevices(); renderFinder(); buildPrintReport(); });
 
         $('shareLink').addEventListener('click', async () => {
             saveHash();
             try { await navigator.clipboard.writeText(location.href); toast('Link copied. Anyone with it sees this exact setup.'); }
             catch (e) { toast('Copy the address bar to share this setup.'); }
         });
-        $('printPage').addEventListener('click', () => window.print());
+        $('printPage').addEventListener('click', () => { buildPrintReport(); window.print(); });
+        window.addEventListener('beforeprint', buildPrintReport);
         $('currentYear').textContent = new Date().getFullYear();
 
         renderDevices();
