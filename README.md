@@ -20,6 +20,7 @@ Both modes have a **light and dark theme**. The page follows the device setting 
 - **Check a Switch**: choose a switch and power setup, add your devices, and see the budget, what is left, and what happens if one power supply fails.
 - **Find a Switch**: enter a load (or use your device list) and get every switch and power setup that fits, best fit first.
 - Every PoE budget comes from the official NETGEAR datasheets (see `data.js`).
+- Power supply options shown as cards with the resulting PoE budget, plus a recommended setup (and a redundant one) for your devices. Turn on Redundant power required to only recommend setups that survive a PSU failure.
 - Checks for PoE port count, PoE++ (802.3bt) needs, per-port limits, safety headroom, and redundancy.
 - Share an exact setup with Copy Link, or Print / Save as PDF for a branded one-page report.
 - Guided tour for first-time users (restart it any time with Take the Tour).

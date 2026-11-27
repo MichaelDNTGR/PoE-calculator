@@ -10,6 +10,11 @@
 - **Missing switches**: M4250-9G1F-PoE+ (110 W), M4250-8G2XF-PoE+ (220 W), M4350-16M4V (530 W up to 1,130 W), and the M4300 PoE models (28G-PoE+, 52G-PoE+, 16X, 96X).
 - **AC input voltage** (100 - 127 V / 200 - 240 V): APS2000W, APS1200Wv2, APS2000Wv2, and M4300 budgets depend on it.
 - **Redundancy check**: shows the PoE budget left if any single PSU fails, per configuration.
+- **Power supply recommendations**: PSU options shown as cards with the resulting budget; the smallest setup that fits (and the smallest redundant one) is recommended with one-click Apply.
+- **Redundant power required** toggle: recommendations, checks, the finder, and the PDF report then require full redundancy.
+- **AV / IT mode** with NETGEAR AV or NETGEAR Enterprise branding and switch portfolio, chosen in a first-visit pop-over.
+- **Light and dark theme** for both modes, following the device setting until changed.
+- Branded **PDF report** (Print / Save as PDF).
 - **Device list** with name, PoE class, quantity, and optional measured wattage per device.
 - **Checks**: PoE port count, PoE++ (802.3bt) requirement, per-port limit, headroom, and redundancy.
 - **Safety headroom** setting (default 10 %).

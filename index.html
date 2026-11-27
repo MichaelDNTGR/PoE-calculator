@@ -109,6 +109,12 @@
                             </div>
                             <p class="hint">Some power supplies deliver less PoE power on 100 - 127 V (for example North America and Japan).</p>
                         </div>
+                        <label class="switch-toggle">
+                            <input type="checkbox" id="needRedundant" role="switch">
+                            <span class="track" aria-hidden="true"></span>
+                            <span class="switch-text"><strong>Redundant power required</strong><span>All devices must stay powered if one power supply fails.</span></span>
+                        </label>
+                        <div class="psu-advice" id="psuAdvice" aria-live="polite" hidden></div>
                         <div id="powerDims"></div>
                         <p class="hint" id="powerNote"></p>
                     </div>

@@ -55,6 +55,7 @@
         voltage: '220',
         dims: {},
         margin: 10,
+        needRedundant: false,
         devices: [{ name: '', cls: 4, qty: 1, watt: null }]
     };
 
@@ -139,10 +140,83 @@
         const el = $('switchSpecs');
         if (!sw) { el.innerHTML = ''; return; }
         const type = sw.maxPort >= 90 ? 'PoE++ up to 90 W (802.3bt)' : 'PoE+ up to 30 W (802.3at)';
+        const maxBudget = Math.max(...sw.configs.map((c) => c.budget));
+        const maxModules = Math.max(...sw.configs.map((c) => c.modules));
+        let power = 'Fixed internal PSU';
+        if (sw.series === 'M4350' && maxModules > 0) power = `${maxModules} modular PSU slot${maxModules > 1 ? 's' : ''}, up to ${fmtW(maxBudget)}`;
+        else if (sw.dims.some((d) => d.key === 'count')) power = `${sw.configs.length} internal PSUs, up to ${fmtW(maxBudget)}`;
+        else if (sw.series === 'M4300' && sw.dims.length) power = `2 PSU bays, up to ${fmtW(maxBudget)}`;
         el.innerHTML = `
             <div><dt>POE PORTS</dt><dd>${sw.poePorts}</dd></div>
             <div><dt>PER PORT</dt><dd>${type}</dd></div>
+            <div><dt>POWER</dt><dd>${power}</dd></div>
             <div><dt>PORTS</dt><dd>${sw.desc}</dd></div>`;
+    }
+
+    /* Smallest setup on this switch that carries the load, and the smallest that survives a PSU failure */
+    function recommendPower(sw, need) {
+        const list = configsFor(sw, state.voltage).filter((c) => !c.degraded);
+        const order = (x, y) => x.modules - y.modules || x.budget - y.budget || y.redundant - x.redundant;
+        const fit = list.filter((c) => c.budget >= need).sort(order)[0] || null;
+        const red = list.filter((c) => c.redundant >= need).sort(order)[0] || null;
+        return { fit, red };
+    }
+
+    const sameDims = (sw, a, b) => !!a && !!b && sw.dims.every((d) => a.dims[d.key] === b.dims[d.key]);
+    const setupLabel = (c) => Object.values(c.dims).join(', ') || 'Fixed internal PSU';
+
+    function applyConfig(c) {
+        state.dims = { ...c.dims };
+        update();
+    }
+
+    function renderPowerAdvice(sw) {
+        const box = $('psuAdvice');
+        const load = loadSummary();
+        box.innerHTML = '';
+        box.hidden = true;
+        if (!sw || !sw.dims.length || load.total <= 0) return null;
+        const need = load.withMargin;
+        const rec = recommendPower(sw, need);
+        const cur = currentConfig();
+        box.hidden = false;
+        const needTxt = `${fmtW(Math.ceil(need))}${state.margin ? ` incl. ${state.margin} % headroom` : ''}`;
+
+        if (!rec.fit) {
+            box.innerHTML = `<p class="advice-title">No power setup on this switch can deliver ${needTxt}.</p>
+                <p>The maximum is ${fmtW(Math.max(...sw.configs.map((c) => c.budget)))}. Split the devices over two switches, use measured device wattage, or let the finder suggest a bigger switch.</p>
+                <button type="button" class="btn btn-ghost" data-act="finder">Find a Switch</button>`;
+            box.querySelector('[data-act="finder"]').onclick = () => selectTab('find');
+            return rec;
+        }
+        const rows = [];
+        let pickCount = 0;
+        const row = (tag, c, extra) => {
+            const active = sameDims(sw, c, cur);
+            rows.push(`<li><span class="advice-tag">${tag}</span><span class="advice-what"><strong>${escapeHtml(setupLabel(c))}</strong>
+                <span>${fmtW(c.budget)} PoE${c.redundant ? `, ${fmtW(c.redundant)} if one PSU fails` : ', no redundancy'}${extra || ''}</span></span>
+                ${active ? '<span class="advice-current">Current</span>' : `<button type="button" class="btn btn-primary btn-sm" data-cfg="${pickCount}">Apply</button>`}</li>`);
+            pickCount += 1;
+            return c;
+        };
+        let picks;
+        if (state.needRedundant) {
+            if (rec.red) picks = [row('RECOMMENDED', rec.red, ' (redundant)')];
+            else {
+                picks = [];
+                rows.push(`<li class="advice-none">No setup on this switch keeps ${needTxt} powered after a PSU failure. The closest without redundancy is below, or use Find a Switch.</li>`);
+                picks.push(row('WITHOUT REDUNDANCY', rec.fit));
+            }
+        } else {
+            picks = [row('RECOMMENDED', rec.fit)];
+            if (rec.red && !sameDims(sw, rec.red, rec.fit)) picks.push(row('REDUNDANT', rec.red));
+            else if (!rec.red) rows.push(`<li class="advice-none">No setup on this switch keeps all devices powered after a PSU failure.</li>`);
+            else rows[0] = rows[0].replace('RECOMMENDED', 'RECOMMENDED + REDUNDANT');
+        }
+
+        box.innerHTML = `<p class="advice-title">Your devices need ${needTxt}</p><ul class="advice-list">${rows.join('')}</ul>`;
+        box.querySelectorAll('[data-cfg]').forEach((btn) => (btn.onclick = () => applyConfig(picks[Number(btn.dataset.cfg)])));
+        return rec;
     }
 
     function renderPowerDims() {
@@ -151,9 +225,10 @@
         wrap.innerHTML = '';
         const note = $('powerNote');
         note.textContent = '';
+        const rec = renderPowerAdvice(sw);
         if (!sw) {
             if (state.switchId === 'custom') note.textContent = 'With a custom budget, power supply options are not needed.';
-            else note.textContent = 'Choose a switch first.';
+            else note.textContent = 'Choose a switch first. Many M4350 and M4300 switches take extra power supplies for a bigger PoE budget, and this step shows the options.';
             return;
         }
         if (!sw.dims.length) {
@@ -163,27 +238,43 @@
         const list = configsFor(sw, state.voltage);
         sw.dims.forEach((d) => {
             const values = [...new Set(list.map((c) => c.dims[d.key]))];
-            const field = document.createElement('label');
-            field.className = 'field';
-            field.innerHTML = `<span class="label">${d.label.toUpperCase()}</span>`;
-            const sel = document.createElement('select');
-            sel.dataset.dim = d.key;
-            for (const v of values) {
-                // Mark values that are not valid together with the other current choices
-                const others = sw.dims.filter((o) => o.key !== d.key);
-                const valid = list.some((c) => c.dims[d.key] === v && others.every((o) => c.dims[o.key] === state.dims[o.key]));
-                const opt = document.createElement('option');
-                opt.value = v;
-                opt.textContent = valid ? v : `${v} (changes other options)`;
-                if (v === state.dims[d.key]) opt.selected = true;
-                sel.appendChild(opt);
-            }
-            sel.addEventListener('change', () => {
-                state.dims[d.key] = sel.value;
-                resolveDims(sw, d.key);
-                update();
+            const others = sw.dims.filter((o) => o.key !== d.key);
+            const field = document.createElement('fieldset');
+            field.className = 'field psu-field';
+            field.innerHTML = `<legend class="label">${d.label.toUpperCase()}</legend>`;
+            const group = document.createElement('div');
+            const asCards = values.length > 2;
+            group.className = asCards ? 'psu-options' : 'segmented';
+            values.forEach((v) => {
+                // The config this choice leads to, keeping the other current choices
+                const target = list.find((c) => c.dims[d.key] === v && others.every((o) => c.dims[o.key] === state.dims[o.key]));
+                const label = document.createElement('label');
+                label.className = asCards ? 'psu-card' : '';
+                const checked = v === state.dims[d.key];
+                const badges = [];
+                const recPick = rec ? (state.needRedundant ? rec.red : rec.fit) : null;
+                if (target && recPick && sameDims(sw, target, recPick)) badges.push('<span class="psu-badge">Recommended</span>');
+                if (target && rec && rec.red && sameDims(sw, target, rec.red) && !(recPick && sameDims(sw, target, recPick))) badges.push('<span class="psu-badge alt">Redundant</span>');
+                const load = loadSummary();
+                const fits = target && load.total > 0 ? target.budget >= load.withMargin : null;
+                label.innerHTML = asCards
+                    ? `<input type="radio" name="dim-${d.key}" value="${escapeHtml(v)}"${checked ? ' checked' : ''}>
+                       <span class="psu-card-body">
+                           <span class="psu-name">${escapeHtml(v)}</span>
+                           ${target ? `<span class="psu-budget">${fmtW(target.budget)} <small>PoE</small></span>
+                           <span class="psu-meta">${target.redundant ? `${fmtW(target.redundant)} if one PSU fails` : 'No redundancy'}${fits === false ? ' | too small' : ''}</span>`
+                           : '<span class="psu-meta">Changes other options</span>'}
+                           ${badges.length ? `<span class="psu-badges">${badges.join('')}</span>` : ''}
+                       </span>`
+                    : `<input type="radio" name="dim-${d.key}" value="${escapeHtml(v)}"${checked ? ' checked' : ''}><span>${escapeHtml(v)}</span>`;
+                label.querySelector('input').addEventListener('change', () => {
+                    state.dims[d.key] = v;
+                    resolveDims(sw, d.key);
+                    update();
+                });
+                group.appendChild(label);
             });
-            field.appendChild(sel);
+            field.appendChild(group);
             wrap.appendChild(field);
         });
 
@@ -295,6 +386,7 @@
         const blockers = [];
         if (sw && load.ports > sw.poePorts) blockers.push('not enough PoE ports');
         if (sw && (load.maxPort > sw.maxPort || (load.maxClass >= 5 && sw.maxPort < 90))) blockers.push(sw.maxPort < 90 ? 'PoE++ needed' : 'port power too high');
+        if (sw && state.needRedundant && load.total > 0 && (redundant || 0) < load.total) blockers.push('not redundant');
 
         card.classList.toggle('over', over || blockers.length > 0);
         if (over) $('resultTitle').textContent = `Over budget by ${fmtW(-left)}`;
@@ -304,7 +396,13 @@
         else $('resultTitle').textContent = 'Fits within the PoE budget';
 
         // Checks
-        if (over) checks.push(['warn', `Devices need ${fmtW(load.total)} but the budget is ${fmtW(budget)}. Add a power supply, choose a bigger switch, or use measured device wattage.`]);
+        if (over) {
+            const opts = sw ? recommendPower(sw, load.total) : null;
+            const fix = opts ? (state.needRedundant ? opts.red || opts.fit : opts.fit) : null;
+            checks.push(['warn', fix
+                ? `Devices need ${fmtW(load.total)} but the budget is ${fmtW(budget)}. This switch fits with: ${setupLabel(fix)} (${fmtW(fix.budget)}). See step 2.`
+                : `Devices need ${fmtW(load.total)} but the budget is ${fmtW(budget)}. No power setup on this switch is big enough: try Find a Switch.`]);
+        }
         else if (tight) checks.push(['warn', `Only ${fmtW(left)} left, below your ${state.margin} % headroom (${fmtW(load.withMargin - load.total)}).`]);
         else if (load.total > 0) checks.push(['ok', `${fmtW(leftAfterMargin)} spare after ${state.margin ? `${state.margin} % headroom` : 'all devices'}.`]);
 
@@ -317,7 +415,8 @@
             else if (load.ports > 0) checks.push(['ok', `Every device is within the ${sw.maxPort} W per-port limit.`]);
 
             if (load.total > 0) {
-                if (!redundant) checks.push(['info', 'No power redundancy in this setup. A PSU failure powers down all PoE devices.']);
+                if (state.needRedundant && !redundant) checks.push(['warn', 'Redundant power is required, but this setup has no backup power supply. See step 2 for a redundant option.']);
+                else if (!redundant) checks.push(['info', 'No power redundancy in this setup. A PSU failure powers down all PoE devices.']);
                 else if (load.total > redundant) checks.push(['warn', `If one PSU fails, the budget drops to ${fmtW(redundant)}: ${fmtW(load.total - redundant)} short. Set port priorities so critical devices stay on.`]);
                 else checks.push(['ok', `Fully redundant: all devices stay powered if one PSU fails (${fmtW(redundant)}).`]);
             }
@@ -340,6 +439,7 @@
         $('findBudget').value = Math.ceil(load.withMargin) || '';
         $('findPorts').value = load.ports || '';
         $('findPerPort').value = load.maxPort ? Math.round(load.maxPort * 10) / 10 : '';
+        $('findRedundant').checked = state.needRedundant;
     }
 
     function renderFinder() {
@@ -439,7 +539,7 @@
 
     function saveHash() {
         const s = {
-            o: state.mode, s: state.switchId, c: state.customBudget, v: state.voltage, d: state.dims, m: state.margin,
+            o: state.mode, r: state.needRedundant ? 1 : 0, s: state.switchId, c: state.customBudget, v: state.voltage, d: state.dims, m: state.margin,
             x: state.devices.map((d) => [d.name, d.cls, Number(d.qty) || 0, d.watt === null ? null : Number(d.watt)])
         };
         try { history.replaceState(null, '', `#${encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(s)))))}`); } catch (e) { /* ignore */ }
@@ -450,6 +550,7 @@
         try {
             const s = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(location.hash.slice(1))))));
             if (s.o === 'it' || s.o === 'av') state.mode = s.o;
+            state.needRedundant = s.r === 1;
             if (s.s && (s.s === 'custom' || getSwitch(s.s))) state.switchId = s.s;
             state.customBudget = Number(s.c) || 0;
             state.voltage = s.v === '110' ? '110' : '220';
@@ -504,6 +605,7 @@
             if (codes.length) kv.push(['PSU order code', codes.map((p) => PSU_INFO[p]).join(', ')]);
         }
         kv.push(['Safety headroom', state.margin ? `${state.margin} % (${fmtW(marginW)})` : 'None']);
+        kv.push(['Redundant power', state.needRedundant ? 'Required' : 'Not required']);
 
         const figures = [
             ['PoE budget', budget === null ? '-' : fmtW(budget), sw ? 'From the datasheet' : budget !== null ? 'Entered manually' : ''],
@@ -627,7 +729,7 @@
             }
         }
         renderSwitchSpecs();
-        if (rebuildPower) renderPowerDims();
+        renderPowerDims();
         renderResult();
         if (!$('panel-find').hidden) { syncFinderFromDevices(); renderFinder(); }
         saveHash();
@@ -750,6 +852,8 @@
             update();
         }));
         $('margin').addEventListener('change', (e) => { state.margin = Number(e.target.value); update(false); });
+        $('needRedundant').checked = state.needRedundant;
+        $('needRedundant').addEventListener('change', (e) => { state.needRedundant = e.target.checked; update(); });
 
         $('addDevice').addEventListener('click', () => {
             state.devices.push({ name: '', cls: 4, qty: 1, watt: null });
