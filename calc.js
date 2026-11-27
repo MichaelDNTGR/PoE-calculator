@@ -718,7 +718,7 @@
                     <li><strong>Not included:</strong> ambient temperature, airflow, power supply derating, and future expansion beyond the safety headroom.</li>
                     <li><strong>Before you order,</strong> confirm the design with the current datasheet and your NETGEAR contact. This report is guidance only.</li>
                 </ul>
-                <p class="rp-note">Open the calculator: ${escapeHtml(location.href.split('#')[0])}</p>
+                <p class="rp-note">Open the calculator: ${escapeHtml(location.origin + location.pathname)}</p>
             </section>`;
 
         el.dataset.brand = state.mode;
