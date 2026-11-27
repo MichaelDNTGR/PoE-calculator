@@ -675,11 +675,12 @@
 
         // Short device lists share page 2 with the recommendations; long lists get their own page
         const splitPages = devices.length > 10;
-        const totalPages = splitPages ? 3 : 2;
-        const pageFoot = (n) => `
-            <footer class="rp-pagefoot">
+        // Running footer: position: fixed in print repeats it at the bottom of every printed page,
+        // independent of paper size or print scaling
+        const runFoot = `
+            <footer class="rp-runfoot">
                 <span>Calculated from datasheet values. Power only: bandwidth is not checked. Guidance only.</span>
-                <span>${brand.name} PoE Calculator | Page ${n} of ${totalPages}</span>
+                <span>${brand.name} PoE Calculator | ${escapeHtml(model)}</span>
             </footer>`;
         const smallHead = `
             <header class="rp-head rp-head-small">
@@ -768,16 +769,15 @@
                     ${psuAdvice}
                 </section>
             </div>
-            ${pageFoot(1)}
         </div>
 
         <div class="rp-page">
             ${smallHead}
             ${devicesSection}
             ${splitPages ? '' : recSection + disclaimer}
-            ${pageFoot(2)}
         </div>
-        ${splitPages ? `<div class="rp-page">${smallHead}${recSection.replace('class="rp-section"', 'class="rp-section rp-first"')}${disclaimer}${pageFoot(3)}</div>` : ''}`;
+        ${splitPages ? `<div class="rp-page">${smallHead}${recSection.replace('class="rp-section"', 'class="rp-section rp-first"')}${disclaimer}</div>` : ''}
+        ${runFoot}`;
     }
 
     /* ================= Main update loop ================= */

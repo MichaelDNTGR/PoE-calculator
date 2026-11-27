@@ -480,17 +480,21 @@ td { color: var(--text-2); font-variant-numeric: tabular-nums; }
     }
     /* Each report page is its own block with its own padding, so spacing never depends on browser margins */
     /*
-     * Fixed physical height instead of 100vh: some print engines (including the
-     * Claude app preview) size vh from the screen, which pushed footers onto an
-     * extra blank page. 272mm fits both Letter (279 mm) and A4 (297 mm) paper.
+     * Pages flow naturally with a page break between them. No fixed heights:
+     * print engines scale differently (the Claude app prints about 4 % larger
+     * than Chrome), and any layout that exactly fills a sheet spills over.
+     * The bottom padding keeps content clear of the running footer.
      */
     .rp-page {
-        box-sizing: border-box; min-height: 272mm; padding: 13mm 15mm 9mm;
-        display: flex; flex-direction: column; break-after: page; page-break-after: always;
-        break-inside: auto;
+        box-sizing: border-box; padding: 13mm 15mm 24mm;
+        break-after: page; page-break-after: always;
     }
-    .rp-page:last-child { break-after: auto; page-break-after: auto; }
-    .rp-pagefoot { margin-top: auto; padding-top: 8pt; border-top: 0.75pt solid #E2E8F0; display: flex; justify-content: space-between; gap: 16pt; font-size: 7pt; color: #64748B; }
+    .rp-page:last-of-type { break-after: auto; page-break-after: auto; }
+    .rp-runfoot {
+        position: fixed; left: 15mm; right: 15mm; bottom: 8mm;
+        padding-top: 6pt; border-top: 0.75pt solid #E2E8F0; background: #FFFFFF;
+        display: flex; justify-content: space-between; gap: 16pt; font-size: 7pt; color: #64748B;
+    }
     .rp-head-small { margin-bottom: 10pt; }
     .rp-head-small img { height: 12pt; }
     .print-report[data-brand="it"] .rp-head-small img { height: 20pt; }
