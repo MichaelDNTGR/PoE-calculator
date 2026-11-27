@@ -4,15 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PoE Calculator</title>
-
-    <!-- Bootstrap stylesheet -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
-    <!-- Shepherd guide files (Stylesheet + JavaScript) -->
-    <script src="https://cdn.jsdelivr.net/npm/shepherd.js@10.0.1/dist/js/shepherd.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@10.0.1/dist/css/shepherd.css" />
+    <title>PoE Calculator | NETGEAR</title>
+    <meta name="description" content="Plan the PoE budget of NETGEAR M4250, M4300 and M4350 managed switches, including modular power supplies, and find the right switch for your devices.">
 
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="Favicon/apple-touch-icon.png">
@@ -20,477 +13,358 @@
     <link rel="icon" type="image/png" sizes="16x16" href="Favicon/favicon-16x16.png">
     <link rel="manifest" href="Favicon/site.webmanifest">
 
-    <!-- Local site styling -->
-    <link rel="stylesheet" href="style.css">
+    <!-- NETGEAR corporate typeface -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css?v=3.2">
+
+    <!-- Apply brand and theme before first paint to avoid a flash of the wrong colors -->
+    <script>
+        (function () {
+            var d = document.documentElement, mode = null, theme = null;
+            try { mode = localStorage.getItem('poeCalcMode'); theme = localStorage.getItem('poeCalcTheme'); } catch (e) {}
+            var q = new URLSearchParams(location.search).get('mode');
+            if (q === 'av' || q === 'it') mode = q;
+            if (theme !== 'light' && theme !== 'dark') theme = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+            d.dataset.brand = mode === 'it' ? 'it' : 'av';
+            d.dataset.theme = theme;
+        })();
+    </script>
 </head>
 
 <body>
+    <a class="skip-link" href="#main">Skip to calculator</a>
 
-    <!-- Container for full body - we require this container, for the Shepherd guide to work, and highlight the data -->
-    <div class="containerall">
-        <!-- Start calculator explanation -->
-        <div class="container mt-5">
-            <div class="row">
-                <div class="col">
-                    <h1>PoE Calculator</h1>
-                    <div class="accordion accordion-flush" id="accordionFlushExample">
-                        <!-- How to Use the PoE Calculator Section -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#howToUseCollapse" aria-expanded="false"
-                                    aria-controls="howToUseCollapse">
-                                    How to Use the PoE Calculator
-                                </button>
-                            </h2>
-                            <div id="howToUseCollapse" class="accordion-collapse collapse"
-                                data-bs-parent="#accordionFlushExample">
-                                <div class="accordion-body">
-                                    <ol>
-                                        <li>Select a switch from the dropdown. For M4350 switches with modular PSUs, additional options will appear.</li>
-                                        <li>For M4350 switches, choose whether the internal PSU is connected and select optional external PSUs.</li>
-                                        <li>Enter the number of devices for each PoE class in the respective input fields.</li>
-                                        <li>The calculator will dynamically compute the leftover budget after considering the power consumption of the devices.</li>
-                                        <li>You can view the PoE power allocation table to understand the power limits and standards for each class.</li>
-                                    </ol>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Who Made It Section -->
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#whoMadeItCollapse" aria-expanded="false"
-                                    aria-controls="whoMadeItCollapse">
-                                    Who Made It
-                                </button>
-                            </h2>
-                            <div id="whoMadeItCollapse" class="accordion-collapse collapse"
-                                data-bs-parent="#accordionFlushExample">
-                                <div class="accordion-body">
-                                    <p>Hi 👋👋, I'm Michael Dijk 🤓, an AV systems Engineer for <a
-                                            href="mailto:mdijk@netgear.com">NETGEAR</a>. Outside of work, I'm a
-                                        full-stack
-                                        developer
-                                        working on various small projects.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- PoE Power Allocation Table Section -->
-                        <div class="accordion-item" id="allocationTable">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#poeAllocationCollapse" aria-expanded="false"
-                                    aria-controls="poeAllocationCollapse">
-                                    PoE Power Allocation Table
-                                </button>
-                            </h2>
-                            <div id="poeAllocationCollapse" class="accordion-collapse collapse"
-                                data-bs-parent="#accordionFlushExample">
-                                <div class="accordion-body">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Class</th>
-                                                <th>IEEE PoE Standard</th>
-                                                <th>PSE - Max Power Delivered (W)</th>
-                                                <th>PSE Voltage Range</th>
-                                                <th>PD - Power Available (W)</th>
-                                                <th>PD Voltage Range</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>0</td>
-                                                <td>IEEE 802.3af, PoE (2 pair)</td>
-                                                <td>15.4</td>
-                                                <td>44 – 57 V</td>
-                                                <td>12.95</td>
-                                                <td>37 – 57 V</td>
-                                            </tr>
-                                            <tr>
-                                                <td>1</td>
-                                                <td>IEEE 802.3af, PoE (2 pair)</td>
-                                                <td>4</td>
-                                                <td>44 – 57 V</td>
-                                                <td>3.84</td>
-                                                <td>37 – 57 V</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td>IEEE 802.3af, PoE (2 pair)</td>
-                                                <td>7</td>
-                                                <td>44 – 57 V</td>
-                                                <td>6.49</td>
-                                                <td>37 – 57 V</td>
-                                            </tr>
-                                            <tr>
-                                                <td>3</td>
-                                                <td>IEEE 802.3af, PoE (2 pair)</td>
-                                                <td>15.4</td>
-                                                <td>44 – 57 V</td>
-                                                <td>12.95</td>
-                                                <td>37 – 57 V</td>
-                                            </tr>
-                                            <tr>
-                                                <td>4</td>
-                                                <td>IEEE 802.3at, PoE+ (2 pair)</td>
-                                                <td>30</td>
-                                                <td>50 – 57 V</td>
-                                                <td>25.5</td>
-                                                <td>42 – 57 V</td>
-                                            </tr>
-                                            <tr>
-                                                <td>5</td>
-                                                <td>IEEE 802.3bt, Type 3 (4 pair)</td>
-                                                <td>45</td>
-                                                <td>50 – 57 V</td>
-                                                <td>40</td>
-                                                <td>42 – 57 V</td>
-                                            </tr>
-                                            <tr>
-                                                <td>6</td>
-                                                <td>IEEE 802.3bt, Type 3 (4 pair)</td>
-                                                <td>60</td>
-                                                <td>50 – 57 V</td>
-                                                <td>51</td>
-                                                <td>42 – 57 V</td>
-                                            </tr>
-                                            <tr>
-                                                <td>7</td>
-                                                <td>IEEE 802.3bt, Type 4 (4 pair)</td>
-                                                <td>75</td>
-                                                <td>52 – 57 V</td>
-                                                <td>62</td>
-                                                <td>51 – 57 V</td>
-                                            </tr>
-                                            <tr>
-                                                <td>8</td>
-                                                <td>IEEE 802.3bt, Type 4 (4 pair)</td>
-                                                <td>90</td>
-                                                <td>52 – 57 V</td>
-                                                <td>73</td>
-                                                <td>51 – 57 V</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <!-- Power Management Modes Section -->
-                        <div class="accordion-item" id="powerManagementMode">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#powerManagementCollapse" aria-expanded="false"
-                                    aria-controls="powerManagementCollapse">
-                                    Power Management Modes
-                                </button>
-                            </h2>
-                            <div id="powerManagementCollapse" class="accordion-collapse collapse"
-                                data-bs-parent="#accordionFlushExample">
-                                <div class="accordion-body">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Mode</th>
-                                                <th>Description</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>Static Mode</td>
-                                                <td>The power deducted from the total available PoE is the maximum power
-                                                    for
-                                                    that
-                                                    interface, based on the PoE class specified by the device, or, when
-                                                    specified in
-                                                    the Power Limit configuration, under PoE Port Configuration. Using
-                                                    this
-                                                    mode
-                                                    ensures that the maximum power specified by you, or, class, for the
-                                                    interface is
-                                                    always reserved and cannot be shared by other PDs.</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Dynamic Mode</td>
-                                                <td>The power deducted from the total available PoE for each port is the
-                                                    actual
-                                                    power consumed by that given port. You can allocate any unused
-                                                    portion
-                                                    of power
-                                                    to the other PDs. By default, this is the mode that the switch is
-                                                    configured in.
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Feature request Section -->
-                        <div class="accordion-item" id="featureRequest">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#featureRequestCollapse" aria-expanded="false"
-                                    aria-controls="featureRequestCollapse">
-                                    How to log a feature request?
-                                </button>
-                            </h2>
-                            <div id="featureRequestCollapse" class="accordion-collapse collapse"
-                                data-bs-parent="#accordionFlushExample">
-                                <div class="accordion-body">
-                                    <p>If you have a feature request or an idea to improve our PoE calculator, we
-                                        encourage you to log it on our GitHub page. Please navigate to our <a
-                                            href="https://github.com/MichaelDNTGR/PoE-calculator/issues" target="_blank"
-                                            rel="noopener noreferrer">GitHub Issues</a> section and click on the "New
-                                        Issue" button. From there, select the "Feature Request" template and provide as
-                                        much detail as possible about your suggestion. I regularly review these requests
-                                        and appreciates your valuable input!</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <header class="site-header">
+        <div class="wrap header-inner">
+            <img class="logo" id="brandLogo" src="assets/netgear-av-logo.svg" alt="NETGEAR AV">
+            <nav class="header-actions" aria-label="Page actions">
+                <div class="segmented mode-switch" id="modeSwitch" role="radiogroup" aria-label="Switch portfolio">
+                    <label><input type="radio" name="mode" value="av" checked><span>AV</span></label>
+                    <label><input type="radio" name="mode" value="it"><span>IT</span></label>
                 </div>
-            </div>
-
+                <button type="button" class="btn btn-ghost theme-toggle" id="themeToggle" aria-pressed="false">Light Mode</button>
+                <button type="button" class="btn btn-ghost" id="startGuide">Take the Tour</button>
+                <button type="button" class="btn btn-ghost" id="shareLink">Copy Link</button>
+                <button type="button" class="btn btn-ghost" id="printPage">Print</button>
+            </nav>
         </div>
-        <!-- End calculator explanation -->
+    </header>
 
-        <!-- Start calculator itself -->
-        <section class="container mt-5">
-            <div class="form-group row">
-                <label for="switchSelection" class="col-sm-6 col-form-label">Select a NETGEAR switch</label>
-                <div class="col-sm-6">
-                    <select class="form-select" id="switchSelection" onchange="switchChanged()">
-                        <option value="default" selected disabled>Select a NETGEAR switch</option>
-                        <optgroup label="M4250 Series (Fixed PSU)">
-                            <option value="M4250-10G2F-PoE+ (125W)">M4250-10G2F-PoE+ (125W)</option>
-                            <option value="M4250-10G2XF-PoE+ (240W)">M4250-10G2XF-PoE+ (240W)</option>
-                            <option value="M4250-10G2XF-PoE++ (720W)">M4250-10G2XF-PoE++ (720W)</option>
-                            <option value="M4250-26G4F-PoE+ (300W)">M4250-26G4F-PoE+ (300W)</option>
-                            <option value="M4250-26G4F-PoE++ (1440W)">M4250-26G4F-PoE++ (1440W) Two PSU</option>
-                            <option value="M4250-26G4F-PoE++ (720W)">M4250-26G4F-PoE+ (720W) One PSU</option>
-                            <option value="M4250-26G4XF-PoE+ (480W)">M4250-26G4XF-PoE+ (480W)</option>
-                            <option value="M4250-40G8F-PoE+ (480W)">M4250-40G8F-PoE+ (480W)</option>
-                            <option value="M4250-40G8XF-PoE+ (960W)">M4250-40G8XF-PoE+ (960W)</option>
-                            <option value="M4250-40G8XF-PoE++ (2880W)">M4250-40G8XF-PoE++ (2880W) Three PSU</option>
-                            <option value="M4250-40G8XF-PoE++ (1650W)">M4250-40G8XF-PoE++ (1650W) Two PSU</option>
-                            <option value="M4250-40G8XF-PoE++ (720W)">M4250-40G8XF-PoE++ (720W) One PSU</option>
-                        </optgroup>
-                        <optgroup label="M4350 Series (Modular PSU)">
-                            <option value="M4350-24G4XF">M4350-24G4XF (GSM4328)</option>
-                            <option value="M4350-48G4XF">M4350-48G4XF (GSM4352)</option>
-                            <option value="M4350-8M2V">M4350-8M2V (MSM4310)</option>
-                            <option value="M4350-24M4X4V">M4350-24M4X4V (MSM4332)</option>
-                            <option value="M4350-44M4X4V">M4350-44M4X4V (MSM4352)</option>
-                            <option value="M4350-24F4X">M4350-24F4X (MSM4328F)</option>
-                            <option value="M4350-24X4V">M4350-24X4V (XSM4328CV)</option>
-                            <option value="M4350-24F4V">M4350-24F4V (XSM4328FV)</option>
-                            <option value="M4350-36X4V">M4350-36X4V (XSM4340CV)</option>
-                            <option value="M4350-24X8F8V">M4350-24X8F8V (XSM4340V)</option>
-                            <option value="M4350-32F8V">M4350-32F8V (XSM4340FV)</option>
-                            <option value="M4350-16V4C">M4350-16V4C (VSM4320C)</option>
-                            <option value="M4350-40X4C">M4350-40X4C (XSM4344C)</option>
-                            <option value="M4350-40F4C">M4350-40F4C (XSM4344FC)</option>
-                        </optgroup>
-                        <option value="custom">Custom</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- M4350 PSU Configuration (hidden by default) -->
-            <div id="m4350PsuConfig" style="display: none;">
-                <div class="alert alert-info" role="alert">
-                    <strong>M4350 Modular PSU Configuration</strong><br>
-                    Configure the internal PSU and optional external PSUs for your M4350 switch.
-                </div>
-                
-                <!-- Internal PSU -->
-                <div class="form-group row">
-                    <label for="internalPsuConnected" class="col-sm-6 col-form-label">Internal PSU Connected?</label>
-                    <div class="col-sm-6">
-                        <select class="form-select" id="internalPsuConnected" onchange="calculateLeftoverBudget()">
-                            <option value="connected">Connected</option>
-                            <option value="disconnected">Disconnected</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- PSU Slot 1 -->
-                <div class="form-group row">
-                    <label for="psuSlot1" class="col-sm-6 col-form-label">PSU Slot 1</label>
-                    <div class="col-sm-6">
-                        <select class="form-select" id="psuSlot1" onchange="calculateLeftoverBudget()">
-                            <option value="disconnected">Disconnected</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- PSU Slot 2 -->
-                <div class="form-group row" id="psuSlot2Row" style="display: none;">
-                    <label for="psuSlot2" class="col-sm-6 col-form-label">PSU Slot 2</label>
-                    <div class="col-sm-6">
-                        <select class="form-select" id="psuSlot2" onchange="calculateLeftoverBudget()">
-                            <option value="disconnected">Disconnected</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div id="customBudgetField" style="display: none;">
-                <div class="form-group row">
-                    <label for="customBudget" class="col-sm-6 col-form-label">Custom PoE Budget (W)</label>
-                    <div class="col-sm-6">
-                        <div class="input-group">
-                            <input type="number" placeholder="Enter custom PoE budget" class="form-control"
-                                id="customBudget" oninput="calculateLeftoverBudget()">
-                            <span class="input-group-text">W</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Class Inputs -->
-            <div class="classInputs">
-                <div class="form-group row">
-                    <label for="class0" class="col-sm-6 col-form-label">Class 0 Devices (15.4W) - PoE</label>
-                    <div class="col-sm-6">
-                        <div class="input-group">
-                            <input type="number" class="form-control class-input" id="class0" value="0"
-                                oninput="calculateLeftoverBudget()">
-                            <span class="input-group-text">W</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="class1" class="col-sm-6 col-form-label">Class 1 Devices (4W) - PoE</label>
-                    <div class="col-sm-6">
-                        <div class="input-group">
-                            <input type="number" class="form-control class-input" id="class1" value="0"
-                                oninput="calculateLeftoverBudget()">
-                            <span class="input-group-text">W</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="class2" class="col-sm-6 col-form-label">Class 2 Devices (7W) - PoE</label>
-                    <div class="col-sm-6">
-                        <div class="input-group">
-                            <input type="number" class="form-control class-input" id="class2" value="0"
-                                oninput="calculateLeftoverBudget()">
-                            <span class="input-group-text">W</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="class3" class="col-sm-6 col-form-label">Class 3 Devices (15.4W) - PoE</label>
-                    <div class="col-sm-6">
-                        <div class="input-group">
-                            <input type="number" class="form-control class-input" id="class3" value="0"
-                                oninput="calculateLeftoverBudget()">
-                            <span class="input-group-text">W</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="class4" class="col-sm-6 col-form-label">Class 4 Devices (30W) - PoE+</label>
-                    <div class="col-sm-6">
-                        <div class="input-group">
-                            <input type="number" class="form-control class-input" id="class4" value="0"
-                                oninput="calculateLeftoverBudget()">
-                            <span class="input-group-text">W</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="class5" class="col-sm-6 col-form-label">Class 5 Devices (45W) - PoE++</label>
-                    <div class="col-sm-6">
-                        <div class="input-group">
-                            <input type="number" class="form-control class-input" id="class5" value="0"
-                                oninput="calculateLeftoverBudget()">
-                            <span class="input-group-text">W</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="class6" class="col-sm-6 col-form-label">Class 6 Devices (60W) - PoE++</label>
-                    <div class="col-sm-6">
-                        <div class="input-group">
-                            <input type="number" class="form-control class-input" id="class6" value="0"
-                                oninput="calculateLeftoverBudget()">
-                            <span class="input-group-text">W</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="class7" class="col-sm-6 col-form-label">Class 7 Devices (75W) - PoE++</label>
-                    <div class="col-sm-6">
-                        <div class="input-group">
-                            <input type="number" class="form-control class-input" id="class7" value="0"
-                                oninput="calculateLeftoverBudget()">
-                            <span class="input-group-text">W</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <label for="class8" class="col-sm-6 col-form-label">Class 8 Devices (90W) - PoE++</label>
-                    <div class="col-sm-6">
-                        <div class="input-group">
-                            <input type="number" class="form-control class-input" id="class8" value="0"
-                                oninput="calculateLeftoverBudget()">
-                            <span class="input-group-text">W</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Leftover Budget Display -->
-            <div class="form-group row">
-                <label for="leftoverBudget" class="col-sm-6 col-form-label">Leftover Budget (W)</label>
-                <div class="col-sm-6">
-                    <div class="input-group">
-                        <input type="number" class="form-control" id="leftoverBudget" readonly>
-                        <span class="input-group-text">W</span>
-                    </div>
-                </div>
-            </div>
-
+    <main id="main" class="wrap">
+        <section class="hero">
+            <p class="eyebrow">POE BUDGET CALCULATOR</p>
+            <h1><span class="thin">Power every device with</span> <strong>confidence</strong></h1>
+            <p class="lede" id="heroLede">Check whether a NETGEAR switch can power your devices, including the effect of extra power supplies and a power supply failure.</p>
         </section>
-        <!-- End calculator itself -->
 
-    </div>
-    <!-- Container for full body - we require this container, for the Shepherd guide to work, and highlight the data -->
+        <div class="tabs" role="tablist" aria-label="Mode">
+            <button type="button" role="tab" class="tab" id="tab-calc" aria-selected="true" aria-controls="panel-calc">Check a Switch</button>
+            <button type="button" role="tab" class="tab" id="tab-find" aria-selected="false" aria-controls="panel-find" tabindex="-1">Find a Switch</button>
+        </div>
 
-    <!-- Start footer -->
-    <footer class="footer py-3 mt-5">
-        <div class="container text-center text-mute">
-            <p>Created by <a href="https://github.com/MichaelDNTGR" target="_blank">Michael Dijk</a>, AV Systems
-                Engineer at <a href="mailto:mdijk@netgear.com">NETGEAR</a></p>
-            <p class="mb-0">&copy; <span id="currentYear"></span> All rights reserved.</p>
+        <div class="layout">
+            <div class="col-main">
+
+                <!-- ============ Calculator panel ============ -->
+                <section id="panel-calc" role="tabpanel" aria-labelledby="tab-calc">
+
+                    <div class="card" id="stepSwitch">
+                        <div class="card-head">
+                            <img src="assets/icons/switch.svg" data-icon="switch" alt="" class="icon">
+                            <div>
+                                <p class="step">STEP 1</p>
+                                <h2>Choose a switch</h2>
+                            </div>
+                        </div>
+                        <label class="field">
+                            <span class="label">SWITCH MODEL</span>
+                            <select id="switchSelect"></select>
+                        </label>
+                        <div id="customBudgetField" class="field" hidden>
+                            <label class="label" for="customBudget">CUSTOM POE BUDGET</label>
+                            <div class="input-unit">
+                                <input type="number" id="customBudget" min="0" step="1" inputmode="numeric" placeholder="e.g. 480">
+                                <span>W</span>
+                            </div>
+                        </div>
+                        <dl class="spec-list" id="switchSpecs"></dl>
+                    </div>
+
+                    <div class="card" id="stepPower">
+                        <div class="card-head">
+                            <img src="assets/icons/redundant-power.svg" data-icon="redundant-power" alt="" class="icon">
+                            <div>
+                                <p class="step">STEP 2</p>
+                                <h2>Set up power supplies</h2>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <span class="label">AC INPUT VOLTAGE</span>
+                            <div class="segmented" role="radiogroup" aria-label="AC input voltage">
+                                <label><input type="radio" name="voltage" value="220" checked><span>200 - 240 V AC</span></label>
+                                <label><input type="radio" name="voltage" value="110"><span>100 - 127 V AC</span></label>
+                            </div>
+                            <p class="hint">Some power supplies deliver less PoE power on 100 - 127 V (for example North America and Japan).</p>
+                        </div>
+                        <label class="switch-toggle">
+                            <input type="checkbox" id="needRedundant" role="switch">
+                            <span class="track" aria-hidden="true"></span>
+                            <span class="switch-text"><strong>Redundant power required</strong><span>All devices must stay powered if one power supply fails.</span></span>
+                        </label>
+                        <div class="psu-advice" id="psuAdvice" aria-live="polite" hidden></div>
+                        <div id="powerDims"></div>
+                        <p class="hint" id="powerNote"></p>
+                    </div>
+
+                    <div class="card" id="stepDevices">
+                        <div class="card-head">
+                            <img src="assets/icons/multiple-devices.svg" data-icon="multiple-devices" alt="" class="icon">
+                            <div>
+                                <p class="step">STEP 3</p>
+                                <h2>Add your powered devices</h2>
+                            </div>
+                        </div>
+                        <p class="hint">Add one row per device type. The wattage defaults to the maximum the switch reserves for that PoE class. If you know the real draw from the device datasheet, type it in for a tighter estimate.</p>
+                        <div class="device-table" role="table" aria-label="Powered devices">
+                            <div class="device-row device-header" role="row">
+                                <span role="columnheader">DEVICE</span>
+                                <span role="columnheader">POE CLASS</span>
+                                <span role="columnheader">QTY</span>
+                                <span role="columnheader">W EACH</span>
+                                <span role="columnheader">TOTAL</span>
+                                <span role="columnheader"><span class="sr-only">Remove</span></span>
+                            </div>
+                            <div id="deviceRows"></div>
+                        </div>
+                        <div class="row-actions">
+                            <button type="button" class="btn btn-primary" id="addDevice">Add Device</button>
+                            <button type="button" class="btn btn-ghost" id="loadExample">Load Example</button>
+                            <button type="button" class="btn btn-ghost" id="clearDevices">Clear All</button>
+                        </div>
+                        <div class="field inline">
+                            <label class="label" for="margin">SAFETY HEADROOM</label>
+                            <select id="margin">
+                                <option value="0">None</option>
+                                <option value="10" selected>10 % (recommended)</option>
+                                <option value="20">20 %</option>
+                                <option value="25">25 %</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ Finder panel ============ -->
+                <section id="panel-find" role="tabpanel" aria-labelledby="tab-find" hidden>
+                    <div class="card" id="finderCard">
+                        <div class="card-head">
+                            <img src="assets/icons/Network_design.svg" data-icon="Network_design" alt="" class="icon">
+                            <div>
+                                <p class="step">SWITCH FINDER</p>
+                                <h2>Tell us what you need to power</h2>
+                            </div>
+                        </div>
+                        <p class="hint">Values are filled in from your device list on the Check a Switch tab. Change any of them to explore other scenarios.</p>
+                        <div class="grid-2">
+                            <div class="field">
+                                <label class="label" for="findBudget">REQUIRED POE BUDGET</label>
+                                <div class="input-unit">
+                                    <input type="number" id="findBudget" min="0" step="1" inputmode="numeric">
+                                    <span>W</span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="label" for="findPorts">POE PORTS NEEDED</label>
+                                <input type="number" id="findPorts" min="0" step="1" inputmode="numeric">
+                            </div>
+                            <div class="field">
+                                <label class="label" for="findPerPort">HIGHEST POWER ON ONE PORT</label>
+                                <div class="input-unit">
+                                    <input type="number" id="findPerPort" min="0" max="90" step="0.1" inputmode="decimal">
+                                    <span>W</span>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="label" for="findSeries">SERIES</label>
+                                <select id="findSeries">
+                                    <option value="all">All series</option>
+                                    <option value="M4250">M4250 AV Line</option>
+                                    <option value="M4350">M4350 AV and IT</option>
+                                    <option value="M4300">M4300 Intelligent Edge</option>
+                                </select>
+                            </div>
+                        </div>
+                        <label class="check">
+                            <input type="checkbox" id="findRedundant">
+                            <span>Budget must survive a single power supply failure</span>
+                        </label>
+                        <label class="check">
+                            <input type="checkbox" id="findSync" checked>
+                            <span>Keep in sync with my device list and safety headroom</span>
+                        </label>
+                        <p class="hint">AC input voltage follows the setting on the Check a Switch tab (<span id="findVoltageLabel"></span>).</p>
+                    </div>
+                    <div id="finderResults" aria-live="polite"></div>
+                </section>
+
+                <!-- ============ Reference ============ -->
+                <section class="card reference" id="reference">
+                    <div class="card-head">
+                        <img src="assets/icons/list.svg" data-icon="list" alt="" class="icon">
+                        <div>
+                            <p class="step">REFERENCE</p>
+                            <h2>Good to know</h2>
+                        </div>
+                    </div>
+
+                    <details>
+                        <summary>PoE classes and power</summary>
+                        <div class="table-scroll">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Class</th>
+                                        <th>Standard</th>
+                                        <th>Switch reserves (PSE)</th>
+                                        <th>Device receives (PD)</th>
+                                        <th>PSE voltage</th>
+                                        <th>PD voltage</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="classTable"></tbody>
+                            </table>
+                        </div>
+                        <p class="hint">The difference between PSE and PD power is lost in the cable (up to 100 m). Switches budget on the PSE value.</p>
+                    </details>
+
+                    <details>
+                        <summary>Static and dynamic power management</summary>
+                        <dl class="defs">
+                            <dt>Dynamic mode (default)</dt>
+                            <dd>The switch deducts the power each port actually draws. Unused power can be shared with other devices. Real-world consumption is usually lower than the class maximum, so this calculator's class-based totals are a safe upper bound.</dd>
+                            <dt>Static mode</dt>
+                            <dd>The switch reserves the maximum power for each port, based on the class the device announces or a power limit you configure. Reserved power is never shared. Use the class wattage in this calculator to match static mode.</dd>
+                            <dt>Port priority</dt>
+                            <dd>If the budget runs out, for example after a power supply failure, the switch powers down the lowest priority ports first. Set critical devices to high or critical priority.</dd>
+                        </dl>
+                    </details>
+
+                    <details>
+                        <summary>Redundant (RPS) and shared (EPS) power</summary>
+                        <dl class="defs">
+                            <dt>Redundant budget</dt>
+                            <dd>The PoE budget that remains when any single power supply fails. If your load is below this value, every device stays powered after a failure.</dd>
+                            <dt>EPS (shared) mode</dt>
+                            <dd>Power supplies work together for the highest PoE budget. If one fails, the budget drops and low-priority ports may lose power.</dd>
+                            <dt>RPS (redundant) mode</dt>
+                            <dd>The second power supply is a hot standby. The budget stays the same after a failure.</dd>
+                        </dl>
+                    </details>
+
+                    <details>
+                        <summary>Data sources and disclaimer</summary>
+                        <p>All PoE budgets come from the official NETGEAR M4250, M4300 and M4350 datasheets. Combinations that are not published in a datasheet, such as two different modular PSU models in one switch, are not offered.</p>
+                        <p>Results are calculated, not measured. Device power is the maximum the switch reserves for each PoE class unless you enter a measured value, so real consumption is usually lower. The calculator checks power only: it does not check bandwidth, port speeds, uplink or stacking capacity, multicast or AV over IP traffic, temperature, or switch configuration.</p>
+                        <p>Always confirm your design with the current datasheet and your NETGEAR contact before ordering.</p>
+                    </details>
+
+                    <details id="featureRequest">
+                        <summary>Request a feature or report a mistake</summary>
+                        <p>Missing a switch, spotted a wrong number, or have an idea? Open an issue on <a href="https://github.com/MichaelDNTGR/PoE-calculator/issues" target="_blank" rel="noopener noreferrer">GitHub</a> and pick the Feature Request template.</p>
+                    </details>
+                </section>
+            </div>
+
+            <!-- ============ Results (sticky) ============ -->
+            <aside class="col-side">
+                <section class="card result" id="resultCard" aria-live="polite">
+                    <div class="card-head">
+                        <img src="assets/icons/PoE.svg" data-icon="PoE" alt="" class="icon result-icon">
+                        <div>
+                            <p class="step">RESULT</p>
+                            <h2 id="resultTitle">Choose a switch to begin</h2>
+                        </div>
+                    </div>
+
+                    <div class="gauge" id="gauge" role="img" aria-label="PoE budget usage">
+                        <div class="gauge-fill" id="gaugeFill"></div>
+                        <div class="gauge-margin" id="gaugeMargin"></div>
+                        <div class="gauge-redundant" id="gaugeRedundant" hidden></div>
+                    </div>
+                    <p class="gauge-caption" id="gaugeCaption">&nbsp;</p>
+
+                    <dl class="stats">
+                        <div><dt>POE BUDGET</dt><dd id="statBudget">-</dd></div>
+                        <div><dt>DEVICES NEED</dt><dd id="statLoad">-</dd></div>
+                        <div><dt>LEFT OVER</dt><dd id="statLeft">-</dd></div>
+                        <div><dt>IF ONE PSU FAILS</dt><dd id="statRedundant">-</dd></div>
+                    </dl>
+
+                    <ul class="checks" id="checks"></ul>
+                </section>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Print / PDF report: filled by calc.js right before printing -->
+    <section class="print-report" id="printReport" aria-hidden="true"></section>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <p>Created by <a href="https://github.com/MichaelDNTGR" target="_blank" rel="noopener noreferrer">Michael Dijk</a>, AV Systems Engineer at NETGEAR. Feedback is welcome on <a href="https://github.com/MichaelDNTGR/PoE-calculator/issues" target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
+            <p class="muted">&copy; <span id="currentYear"></span> NETGEAR. Budgets are based on published datasheets and are provided as guidance only.</p>
         </div>
     </footer>
-    <!-- End footer -->
 
+    <!-- Guided tour -->
+    <div class="guide-backdrop" id="guideBackdrop" hidden></div>
+    <div class="guide-pop" id="guidePop" role="dialog" aria-modal="true" aria-labelledby="guideTitle" hidden>
+        <p class="step" id="guideStep"></p>
+        <h3 id="guideTitle"></h3>
+        <p id="guideText"></p>
+        <div class="guide-actions">
+            <button type="button" class="btn btn-ghost" id="guideSkip">Skip Tour</button>
+            <span class="spacer"></span>
+            <button type="button" class="btn btn-ghost" id="guideBack">Back</button>
+            <button type="button" class="btn btn-primary" id="guideNext">Next</button>
+        </div>
+    </div>
 
-    <!-- Bootstrap scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+    <a class="mini-bar" id="miniBar" href="#resultCard" hidden></a>
 
-    <!-- Shepherd guide script -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/3.0.1/js.cookie.min.js"></script>
-    <script src="shepherd.js"></script>
+    <!-- First visit: AV or IT -->
+    <div class="picker-backdrop" id="modePicker" hidden>
+        <div class="picker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+            <p class="eyebrow">POE BUDGET CALCULATOR</p>
+            <h2 id="pickerTitle"><span class="thin">What are you</span> powering?</h2>
+            <p>Pick your world and we will show the right switches. You can change this any time with the AV / IT switch at the top.</p>
+            <div class="picker-options">
+                <button type="button" class="picker-option" data-mode="av">
+                    <img src="assets/netgear-av-logo-light-bg.svg" alt="">
+                    <strong>Pro AV</strong>
+                    <span>Cameras, displays, codecs, microphones, and AV over IP.</span>
+                    <span class="models">M4250 AV Line and M4350 switches</span>
+                    <span class="go">Choose AV</span>
+                </button>
+                <button type="button" class="picker-option" data-mode="it">
+                    <img class="tall" src="assets/netgear-enterprise-logo-light-bg.svg" alt="">
+                    <strong>IT and enterprise</strong>
+                    <span>Access points, IP phones, security cameras, and IoT devices.</span>
+                    <span class="models">M4350 and M4300 switches</span>
+                    <span class="go">Choose IT</span>
+                </button>
+            </div>
+            <p class="picker-foot">Light or dark? Use the theme button at the top of the page.</p>
+        </div>
+    </div>
 
-    <!-- Start own scripts -->
-    <!-- Calculator script -->
-    <script src="calc.js"></script>
-    <!-- Other script/data -->
-    <script src="other.js"></script>
-    <!-- End own scripts -->
+    <div class="toast" id="toast" role="status" hidden></div>
+
+    <script src="data.js?v=3.2"></script>
+    <script src="calc.js?v=3.2"></script>
+    <script src="guide.js?v=3.2"></script>
 </body>
 
 </html>
